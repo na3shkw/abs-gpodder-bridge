@@ -1,0 +1,3 @@
+harness/config.local.sh
+/.state/
+/.env
