@@ -16,6 +16,7 @@ type Request struct {
 	Query  string
 	Header http.Header
 	Body   []byte
+	Host   string
 }
 
 // Server は受け取ったリクエストを記録し、Handle で登録した応答を返す。

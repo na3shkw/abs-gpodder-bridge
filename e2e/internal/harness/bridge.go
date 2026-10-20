@@ -38,31 +38,52 @@ type Env map[string]string
 // 終了はテストの Cleanup で行う。
 func Start(t testing.TB, env Env) *Bridge {
 	t.Helper()
-	if _, ok := env["LISTEN_PORT"]; !ok {
-		env = clone(env)
-		env["LISTEN_PORT"] = strconv.Itoa(FreePort(t))
+	b, code, ok := TryStart(t, env, true)
+	if !ok {
+		if code >= 0 {
+			Fatalf(t, "2.1", "ブリッジが起動直後に終了しました（終了コード %d）", code)
+		}
+		Fatalf(t, "2.3", "10 秒以内に GET /healthz が応答しませんでした")
 	}
-	port, _ := strconv.Atoi(env["LISTEN_PORT"])
+	return b
+}
+
+// SpecDefaultListenPort は、仕様で決めた LISTEN_PORT の既定値。
+const SpecDefaultListenPort = 8080
+
+// TryStart はブリッジを起動し、/healthz が応答するか、プロセスが終了するまで待つ（最大 10 秒）。
+// 応答したら (b, -1, true)、終了したら (nil, 終了コード, false)、どちらでもなければ (nil, -1, false)。
+// autoPort が true で LISTEN_PORT が指定されていなければ空きポートを割り当てる。false なら仕様の既定値に接続する。
+func TryStart(t testing.TB, env Env, autoPort bool) (*Bridge, int, bool) {
+	t.Helper()
+	port := SpecDefaultListenPort
+	if p, ok := env["LISTEN_PORT"]; ok {
+		port, _ = strconv.Atoi(p)
+	} else if autoPort {
+		env = clone(env)
+		port = FreePort(t)
+		env["LISTEN_PORT"] = strconv.Itoa(port)
+	}
 	b := spawn(t, env)
 	b.Port = port
 	b.URL = fmt.Sprintf("http://127.0.0.1:%d", port)
 
+	client := &http.Client{Timeout: time.Second}
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		select {
 		case <-b.done:
-			Fatalf(t, "2.1", "ブリッジが起動直後に終了しました（終了コード %d）", b.cmd.ProcessState.ExitCode())
+			return nil, b.cmd.ProcessState.ExitCode(), false
 		default:
 		}
-		resp, err := http.Get(b.URL + "/healthz")
+		resp, err := client.Get(b.URL + "/healthz")
 		if err == nil {
 			resp.Body.Close()
-			return b
+			return b, -1, true
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	Fatalf(t, "2.3", "10 秒以内に GET /healthz が応答しませんでした")
-	return nil
+	return nil, -1, false
 }
 
 // RunToExit はブリッジを起動し、終了するまで待って終了コードを返す。
@@ -83,6 +104,9 @@ func (b *Bridge) Output() string { return b.out.String() }
 
 func spawn(t testing.TB, env Env) *Bridge {
 	t.Helper()
+	if os.Getenv("E2E_DIAGRAMS") != "" {
+		t.Skip("図の生成モードではブリッジを起動しない")
+	}
 	bin := os.Getenv("BRIDGE_BIN")
 	if bin == "" {
 		t.Fatal("BRIDGE_BIN が設定されていません")
