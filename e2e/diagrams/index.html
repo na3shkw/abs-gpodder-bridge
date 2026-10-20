@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>e2e テストシナリオ図解</title>
+<style>
+:root { --bg:#fbfaf7; --fg:#22252a; --muted:#5f6670; --line:#d9d6cf; --card:#ffffff; --accent:#2f6fbd; --ok:#3f8a52; --ng:#c0606e; --code-bg:#f1efe9; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#17191c; --fg:#e6e4df; --muted:#a2a7ae; --line:#3a3e44; --card:#1f2226; --accent:#7fb0ee; --ok:#78b884; --ng:#e08a96; --code-bg:#2a2d32; }
+}
+:root[data-theme="dark"] { --bg:#17191c; --fg:#e6e4df; --muted:#a2a7ae; --line:#3a3e44; --card:#1f2226; --accent:#7fb0ee; --ok:#78b884; --ng:#e08a96; --code-bg:#2a2d32; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif; line-height: 1.6; font-size: 15px; }
+main { max-width: 980px; margin: 0 auto; padding: 0 16px 80px; }
+h1 { font-size: 1.5rem; margin: 24px 0 4px; }
+.lead, .legend { color: var(--muted); font-size: 0.9rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.legend .ok { color: var(--ok); } .legend .ng { color: var(--ng); }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+a { color: var(--accent); }
+.bar { position: sticky; top: 0; z-index: 5; background: var(--bg); display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
+.bar button { font: inherit; font-size: 0.82rem; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; cursor: pointer; }
+.bar .total { font-weight: 700; font-variant-numeric: tabular-nums; }
+details.sec { margin-top: 24px; }
+details.sec > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::before { content: "▸"; color: var(--muted); }
+details.sec[open] > summary::before { content: "▾"; }
+details.sec h2 { font-size: 1.15rem; margin: 0; }
+.count { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.count.done { color: var(--ok); font-weight: 700; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 14px 0; }
+.card.checked { border-color: var(--ok); }
+.card header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.card label { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.card .id { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--accent); font-size: 0.9rem; }
+.card.checked .id { color: var(--ok); }
+.card .title { font-weight: 700; }
+.card .src { margin: 2px 0 8px; font-size: 0.82rem; color: var(--muted); }
+.card img { width: 100%; height: auto; display: block; border-radius: 6px; }
+input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--ok); cursor: pointer; }
+nav.side { position: fixed; top: 50%; transform: translateY(-50%); left: max(12px, calc(50vw - 490px - 230px)); width: max-content; z-index: 6;
+  padding: 8px 0; font-size: 0.88rem; white-space: nowrap; }
+nav.side ul { list-style: none; margin: 0; padding: 0; }
+nav.side a { display: block; padding: 5px 14px; color: var(--fg); text-decoration: none; border-left: 3px solid transparent; }
+nav.side a:hover { background: var(--code-bg); }
+nav.side a.current { border-left-color: var(--accent); color: var(--accent); font-weight: 700; }
+details.sec { scroll-margin-top: 56px; }
+@media (max-width: 1460px) { main { margin-left: 240px; } }
+@media (max-width: 760px) { nav.side { display: none; } main { margin-left: auto; } }
+</style>
+</head>
+<body>
+<main>
+<h1>e2e テストシナリオ図解</h1>
+<div class="bar"><span>チェック <span class="total"></span></span><button type="button" data-act="open">すべて開く</button><button type="button" data-act="close">すべて閉じる</button><button type="button" data-act="reset">チェックをすべて外す</button></div>
+<p class="lead">テスト 1 件につき 1 枚の図。全 96 件。図はテストの記述（DSL）から生成している。</p>
+<div class="legend"><span><b class="ok">✓</b> 起きるべきこと</span><span><b class="ng">✗</b> 起きてはならないこと</span><span>時刻は 09:00 起点の例、位置・長さは秒</span></div>
+<nav class="side" aria-label="グループ"><ul>
+<li><a href="#g-CFG">起動・設定</a></li>
+<li><a href="#g-HLT">ヘルスチェック</a></li>
+<li><a href="#g-PRX">中継</a></li>
+<li><a href="#g-PST">POST（記録の受信）</a></li>
+<li><a href="#g-GET">GET（同期の突き合わせ）</a></li>
+<li><a href="#g-MCH">照合</a></li>
+<li><a href="#g-IDX">索引</a></li>
+<li><a href="#g-CNF">比べ方</a></li>
+<li><a href="#g-FMT">データ形式</a></li>
+</ul></nav>
+<details class="sec" id="g-CFG" data-key="CFG" open><summary><h2>起動・設定</h2><span class="count"></span></summary>
+<article class="card" id="CFG-01">
+<header><label><input type="checkbox" data-id="CFG-01"> <span class="id">CFG-01</span></label><span class="title">必須の環境変数がなければ、終了コード 1 で起動をやめる</span></header>
+<p class="src"><a href="../config_test.go#L10">config_test.go:10</a> <code>TestConfig_ExitsWhenRequiredEnvMissing</code></p>
+<img src="CFG-01.svg" alt="CFG-01 の図" loading="lazy">
+</article>
+<article class="card" id="CFG-02">
+<header><label><input type="checkbox" data-id="CFG-02"> <span class="id">CFG-02</span></label><span class="title">環境変数の値が不正なら（任意の変数でも）、終了コード 1 で起動をやめる</span></header>
+<p class="src"><a href="../config_test.go#L22">config_test.go:22</a> <code>TestConfig_ExitsOnInvalidValue</code></p>
+<img src="CFG-02.svg" alt="CFG-02 の図" loading="lazy">
+</article>
+<article class="card" id="CFG-03">
+<header><label><input type="checkbox" data-id="CFG-03"> <span class="id">CFG-03</span></label><span class="title">URL の末尾の / の有無にかかわらず、同じ先へ送る</span></header>
+<p class="src"><a href="../config_test.go#L38">config_test.go:38</a> <code>TestConfig_AcceptsTrailingSlashInURLs</code></p>
+<img src="CFG-03.svg" alt="CFG-03 の図" loading="lazy">
+</article>
+<article class="card" id="CFG-04">
+<header><label><input type="checkbox" data-id="CFG-04"> <span class="id">CFG-04</span></label><span class="title">LISTEN_PORT を指定しなければ、既定の 8080 で待ち受ける</span></header>
+<p class="src"><a href="../config_test.go#L48">config_test.go:48</a> <code>TestConfig_ListensOnDefaultPort</code></p>
+<img src="CFG-04.svg" alt="CFG-04 の図" loading="lazy">
+</article>
+<article class="card" id="CFG-05">
+<header><label><input type="checkbox" data-id="CFG-05"> <span class="id">CFG-05</span></label><span class="title">正しい値の環境変数なら起動する</span></header>
+<p class="src"><a href="../config_test.go#L57">config_test.go:57</a> <code>TestConfig_StartsWithValidValues</code></p>
+<img src="CFG-05.svg" alt="CFG-05 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-HLT" data-key="HLT" open><summary><h2>ヘルスチェック</h2><span class="count"></span></summary>
+<article class="card" id="HLT-01">
+<header><label><input type="checkbox" data-id="HLT-01"> <span class="id">HLT-01</span></label><span class="title">GET /healthz に 200・JSON・{&#34;status&#34;:&#34;ok&#34;} を返す</span></header>
+<p class="src"><a href="../proxy_test.go#L11">proxy_test.go:11</a> <code>TestHealthz_ReturnsStatusOK</code></p>
+<img src="HLT-01.svg" alt="HLT-01 の図" loading="lazy">
+</article>
+<article class="card" id="HLT-02">
+<header><label><input type="checkbox" data-id="HLT-02"> <span class="id">HLT-02</span></label><span class="title">GET /healthz は goPodder へ中継しない</span></header>
+<p class="src"><a href="../proxy_test.go#L19">proxy_test.go:19</a> <code>TestHealthz_NotForwardedToGoPodder</code></p>
+<img src="HLT-02.svg" alt="HLT-02 の図" loading="lazy">
+</article>
+<article class="card" id="HLT-03">
+<header><label><input type="checkbox" data-id="HLT-03"> <span class="id">HLT-03</span></label><span class="title">goPodder と ABS が止まっていても、GET /healthz に 200 を返す</span></header>
+<p class="src"><a href="../proxy_test.go#L27">proxy_test.go:27</a> <code>TestHealthz_OKWhileDependenciesDown</code></p>
+<img src="HLT-03.svg" alt="HLT-03 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-PRX" data-key="PRX" open><summary><h2>中継</h2><span class="count"></span></summary>
+<article class="card" id="PRX-01">
+<header><label><input type="checkbox" data-id="PRX-01"> <span class="id">PRX-01</span></label><span class="title">メソッド・パス・クエリ・本文を変えずに goPodder へ中継する</span></header>
+<p class="src"><a href="../proxy_test.go#L37">proxy_test.go:37</a> <code>TestProxy_ForwardsMethodPathQueryBody</code></p>
+<img src="PRX-01.svg" alt="PRX-01 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-02">
+<header><label><input type="checkbox" data-id="PRX-02"> <span class="id">PRX-02</span></label><span class="title">Authorization・Cookie・任意のヘッダーを変えずに中継する</span></header>
+<p class="src"><a href="../proxy_test.go#L48">proxy_test.go:48</a> <code>TestProxy_ForwardsHeaders</code></p>
+<img src="PRX-02.svg" alt="PRX-02 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-03">
+<header><label><input type="checkbox" data-id="PRX-03"> <span class="id">PRX-03</span></label><span class="title">hop-by-hop ヘッダーは中継せず、Host は転送先にする</span></header>
+<p class="src"><a href="../proxy_test.go#L60">proxy_test.go:60</a> <code>TestProxy_DropsHopByHopHeaders</code></p>
+<img src="PRX-03.svg" alt="PRX-03 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-04">
+<header><label><input type="checkbox" data-id="PRX-04"> <span class="id">PRX-04</span></label><span class="title">goPodder の応答のステータス・Set-Cookie・本文を変えずに返す</span></header>
+<p class="src"><a href="../proxy_test.go#L72">proxy_test.go:72</a> <code>TestProxy_ReturnsGoPodderResponseAsIs</code></p>
+<img src="PRX-04.svg" alt="PRX-04 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-05">
+<header><label><input type="checkbox" data-id="PRX-05"> <span class="id">PRX-05</span></label><span class="title">差し込みの対象でないリクエスト（パスが違う・PUT）は中継だけを行う</span></header>
+<p class="src"><a href="../proxy_test.go#L88">proxy_test.go:88</a> <code>TestProxy_OnlyExactEpisodesPathIsIntercepted</code></p>
+<img src="PRX-05.svg" alt="PRX-05 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-06">
+<header><label><input type="checkbox" data-id="PRX-06"> <span class="id">PRX-06</span></label><span class="title">goPodder に接続できなければ 502 を返す</span></header>
+<p class="src"><a href="../proxy_test.go#L98">proxy_test.go:98</a> <code>TestProxy_Returns502WhenGoPodderDown</code></p>
+<img src="PRX-06.svg" alt="PRX-06 の図" loading="lazy">
+</article>
+<article class="card" id="PRX-07">
+<header><label><input type="checkbox" data-id="PRX-07"> <span class="id">PRX-07</span></label><span class="title">goPodder が GOPODDER_TIMEOUT_SECONDS 以内に応答しなければ 502 を返す</span></header>
+<p class="src"><a href="../proxy_test.go#L107">proxy_test.go:107</a> <code>TestProxy_Returns502WhenGoPodderTimesOut</code></p>
+<img src="PRX-07.svg" alt="PRX-07 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-PST" data-key="PST" open><summary><h2>POST（記録の受信）</h2><span class="count"></span></summary>
+<article class="card" id="PST-01">
+<header><label><input type="checkbox" data-id="PST-01"> <span class="id">PST-01</span></label><span class="title">play の記録の位置を ABS へ反映する（本文はほかの項目なし）</span></header>
+<p class="src"><a href="../post_test.go#L11">post_test.go:11</a> <code>TestPOST_ReflectsPositionToABS</code></p>
+<img src="PST-01.svg" alt="PST-01 の図" loading="lazy">
+</article>
+<article class="card" id="PST-02">
+<header><label><input type="checkbox" data-id="PST-02"> <span class="id">PST-02</span></label><span class="title">長さがあって聴き終わっていなければ、duration を送り、isFinished は送らない</span></header>
+<p class="src"><a href="../post_test.go#L22">post_test.go:22</a> <code>TestPOST_SendsDurationWithoutIsFinished</code></p>
+<img src="PST-02.svg" alt="PST-02 の図" loading="lazy">
+</article>
+<article class="card" id="PST-03">
+<header><label><input type="checkbox" data-id="PST-03"> <span class="id">PST-03</span></label><span class="title">位置が長さ以上なら isFinished: true を送る</span></header>
+<p class="src"><a href="../post_test.go#L32">post_test.go:32</a> <code>TestPOST_SendsIsFinishedWhenPositionReachesTotal</code></p>
+<img src="PST-03.svg" alt="PST-03 の図" loading="lazy">
+</article>
+<article class="card" id="PST-04">
+<header><label><input type="checkbox" data-id="PST-04"> <span class="id">PST-04</span></label><span class="title">長さが 0 なら duration を送らない</span></header>
+<p class="src"><a href="../post_test.go#L42">post_test.go:42</a> <code>TestPOST_OmitsDurationWhenTotalIsZero</code></p>
+<img src="PST-04.svg" alt="PST-04 の図" loading="lazy">
+</article>
+<article class="card" id="PST-05">
+<header><label><input type="checkbox" data-id="PST-05"> <span class="id">PST-05</span></label><span class="title">goPodder が 2xx 以外を返したら、ABS へは何も送らない</span></header>
+<p class="src"><a href="../post_test.go#L52">post_test.go:52</a> <code>TestPOST_SkipsABSWhenGoPodderFails</code></p>
+<img src="PST-05.svg" alt="PST-05 の図" loading="lazy">
+</article>
+<article class="card" id="PST-06">
+<header><label><input type="checkbox" data-id="PST-06"> <span class="id">PST-06</span></label><span class="title">play 以外・位置が負や数値でない・時刻が読めない記録は無視し、ほかは反映する</span></header>
+<p class="src"><a href="../post_test.go#L64">post_test.go:64</a> <code>TestPOST_IgnoresInvalidActions</code></p>
+<img src="PST-06.svg" alt="PST-06 の図" loading="lazy">
+</article>
+<article class="card" id="PST-07">
+<header><label><input type="checkbox" data-id="PST-07"> <span class="id">PST-07</span></label><span class="title">本文が JSON でない・配列でなければ、ABS へは何も送らない</span></header>
+<p class="src"><a href="../post_test.go#L81">post_test.go:81</a> <code>TestPOST_SkipsABSWhenBodyIsNotArray</code></p>
+<img src="PST-07.svg" alt="PST-07 の図" loading="lazy">
+</article>
+<article class="card" id="PST-08">
+<header><label><input type="checkbox" data-id="PST-08"> <span class="id">PST-08</span></label><span class="title">照合できない記録は無視し、照合できた記録は反映する</span></header>
+<p class="src"><a href="../post_test.go#L92">post_test.go:92</a> <code>TestPOST_IgnoresUnmatchedActions</code></p>
+<img src="PST-08.svg" alt="PST-08 の図" loading="lazy">
+</article>
+<article class="card" id="PST-09">
+<header><label><input type="checkbox" data-id="PST-09"> <span class="id">PST-09</span></label><span class="title">同じエピソードの記録が複数あれば時刻が新しい方を、同じ時刻なら配列の後ろを反映する</span></header>
+<p class="src"><a href="../post_test.go#L106">post_test.go:106</a> <code>TestPOST_KeepsNewestActionPerEpisode</code></p>
+<img src="PST-09.svg" alt="PST-09 の図" loading="lazy">
+</article>
+<article class="card" id="PST-10">
+<header><label><input type="checkbox" data-id="PST-10"> <span class="id">PST-10</span></label><span class="title">ABS の進捗を取得できなければ反映しない（応答は goPodder のまま）</span></header>
+<p class="src"><a href="../post_test.go#L123">post_test.go:123</a> <code>TestPOST_SkipsWhenProgressFetchFails</code></p>
+<img src="PST-10.svg" alt="PST-10 の図" loading="lazy">
+</article>
+<article class="card" id="PST-11">
+<header><label><input type="checkbox" data-id="PST-11"> <span class="id">PST-11</span></label><span class="title">1 件の PATCH が失敗してもほかは反映し、失敗した分は再送しない</span></header>
+<p class="src"><a href="../post_test.go#L136">post_test.go:136</a> <code>TestPOST_ContinuesAfterOnePATCHFails</code></p>
+<img src="PST-11.svg" alt="PST-11 の図" loading="lazy">
+</article>
+<article class="card" id="PST-12">
+<header><label><input type="checkbox" data-id="PST-12"> <span class="id">PST-12</span></label><span class="title">ABS が ABS_TIMEOUT_SECONDS 以内に応答しなくても、goPodder の応答を返す</span></header>
+<p class="src"><a href="../post_test.go#L152">post_test.go:152</a> <code>TestPOST_RespondsWhenABSTimesOut</code></p>
+<img src="PST-12.svg" alt="PST-12 の図" loading="lazy">
+</article>
+<article class="card" id="PST-13">
+<header><label><input type="checkbox" data-id="PST-13"> <span class="id">PST-13</span></label><span class="title">ABS への反映を終えてから、クライアントへ応答する</span></header>
+<p class="src"><a href="../post_test.go#L166">post_test.go:166</a> <code>TestPOST_FinishesABSUpdateBeforeResponding</code></p>
+<img src="PST-13.svg" alt="PST-13 の図" loading="lazy">
+</article>
+<article class="card" id="PST-14">
+<header><label><input type="checkbox" data-id="PST-14"> <span class="id">PST-14</span></label><span class="title">時刻のない記録は、受け取った時刻（今）の記録とみなす</span></header>
+<p class="src"><a href="../post_test.go#L178">post_test.go:178</a> <code>TestPOST_TreatsMissingTimestampAsReceiptTime</code></p>
+<img src="PST-14.svg" alt="PST-14 の図" loading="lazy">
+</article>
+<article class="card" id="PST-15">
+<header><label><input type="checkbox" data-id="PST-15"> <span class="id">PST-15</span></label><span class="title">ABS へのリクエストには ABS_TOKEN を使う（/api/feeds だけ管理者のトークン）</span></header>
+<p class="src"><a href="../post_test.go#L189">post_test.go:189</a> <code>TestPOST_UsesUserTokenForABS</code></p>
+<img src="PST-15.svg" alt="PST-15 の図" loading="lazy">
+</article>
+<article class="card" id="PST-16">
+<header><label><input type="checkbox" data-id="PST-16"> <span class="id">PST-16</span></label><span class="title">パスのユーザー名にかかわらず、ABS_TOKEN のユーザーの進捗に反映する</span></header>
+<p class="src"><a href="../post_test.go#L201">post_test.go:201</a> <code>TestPOST_IgnoresUserNameInPath</code></p>
+<img src="PST-16.svg" alt="PST-16 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-GET" data-key="GET" open><summary><h2>GET（同期の突き合わせ）</h2><span class="count"></span></summary>
+<article class="card" id="GET-01">
+<header><label><input type="checkbox" data-id="GET-01"> <span class="id">GET-01</span></label><span class="title">goPodder の記録の方が新しければ、ABS へ反映する</span></header>
+<p class="src"><a href="../get_test.go#L11">get_test.go:11</a> <code>TestGET_ReflectsNewerGoPodderStateToABS</code></p>
+<img src="GET-01.svg" alt="GET-01 の図" loading="lazy">
+</article>
+<article class="card" id="GET-02">
+<header><label><input type="checkbox" data-id="GET-02"> <span class="id">GET-02</span></label><span class="title">ABS の進捗の方が新しければ、goPodder へ play として書き戻す</span></header>
+<p class="src"><a href="../get_test.go#L24">get_test.go:24</a> <code>TestGET_WritesNewerABSProgressBackToGoPodder</code></p>
+<img src="GET-02.svg" alt="GET-02 の図" loading="lazy">
+</article>
+<article class="card" id="GET-03">
+<header><label><input type="checkbox" data-id="GET-03"> <span class="id">GET-03</span></label><span class="title">書き戻すエピソードが複数あれば、1 回の POST にまとめる</span></header>
+<p class="src"><a href="../get_test.go#L37">get_test.go:37</a> <code>TestGET_WritesBackInOnePOST</code></p>
+<img src="GET-03.svg" alt="GET-03 の図" loading="lazy">
+</article>
+<article class="card" id="GET-04">
+<header><label><input type="checkbox" data-id="GET-04"> <span class="id">GET-04</span></label><span class="title">書き戻した記録が、続けて中継する元の GET の応答に入る</span></header>
+<p class="src"><a href="../get_test.go#L58">get_test.go:58</a> <code>TestGET_ClientReceivesWrittenBackAction</code></p>
+<img src="GET-04.svg" alt="GET-04 の図" loading="lazy">
+</article>
+<article class="card" id="GET-05">
+<header><label><input type="checkbox" data-id="GET-05"> <span class="id">GET-05</span></label><span class="title">ABS で聴き終わっていて進捗に長さがなければ、エピソードの長さを total と位置にする</span></header>
+<p class="src"><a href="../get_test.go#L71">get_test.go:71</a> <code>TestGET_FinishedWithoutDurationUsesEpisodeLength</code></p>
+<img src="GET-05.svg" alt="GET-05 の図" loading="lazy">
+</article>
+<article class="card" id="GET-06">
+<header><label><input type="checkbox" data-id="GET-06"> <span class="id">GET-06</span></label><span class="title">聴き終わっていなければ、位置は currentTime の切り捨て、total は進捗 → 索引の順で取る</span></header>
+<p class="src"><a href="../get_test.go#L83">get_test.go:83</a> <code>TestGET_UnfinishedUsesCurrentTimeAndEpisodeLength</code></p>
+<img src="GET-06.svg" alt="GET-06 の図" loading="lazy">
+</article>
+<article class="card" id="GET-07">
+<header><label><input type="checkbox" data-id="GET-07"> <span class="id">GET-07</span></label><span class="title">進捗にも索引にも長さがなければ、total と started を書かない</span></header>
+<p class="src"><a href="../get_test.go#L95">get_test.go:95</a> <code>TestGET_OmitsTotalWhenNoLengthKnown</code></p>
+<img src="GET-07.svg" alt="GET-07 の図" loading="lazy">
+</article>
+<article class="card" id="GET-08">
+<header><label><input type="checkbox" data-id="GET-08"> <span class="id">GET-08</span></label><span class="title">記録に guid があれば同じ値を、なければ含めずに書き戻す（device は含めない）</span></header>
+<p class="src"><a href="../get_test.go#L108">get_test.go:108</a> <code>TestGET_CopiesGUIDFromRecord</code></p>
+<img src="GET-08.svg" alt="GET-08 の図" loading="lazy">
+</article>
+<article class="card" id="GET-09">
+<header><label><input type="checkbox" data-id="GET-09"> <span class="id">GET-09</span></label><span class="title">goPodder の記録が download・delete でも、ABS に進捗があれば書き戻す</span></header>
+<p class="src"><a href="../get_test.go#L129">get_test.go:129</a> <code>TestGET_WritesBackForNonPlayRecords</code></p>
+<img src="GET-09.svg" alt="GET-09 の図" loading="lazy">
+</article>
+<article class="card" id="GET-10">
+<header><label><input type="checkbox" data-id="GET-10"> <span class="id">GET-10</span></label><span class="title">goPodder の記録が download で ABS に進捗がなければ、何もしない（ep2 は対照）</span></header>
+<p class="src"><a href="../get_test.go#L150">get_test.go:150</a> <code>TestGET_IgnoresNonPlayRecordWithoutProgress</code></p>
+<img src="GET-10.svg" alt="GET-10 の図" loading="lazy">
+</article>
+<article class="card" id="GET-11">
+<header><label><input type="checkbox" data-id="GET-11"> <span class="id">GET-11</span></label><span class="title">時刻のない play の記録は、突き合わせに使わない（ep2 は対照）</span></header>
+<p class="src"><a href="../get_test.go#L163">get_test.go:163</a> <code>TestGET_IgnoresPlayRecordWithoutTimestamp</code></p>
+<img src="GET-11.svg" alt="GET-11 の図" loading="lazy">
+</article>
+<article class="card" id="GET-12">
+<header><label><input type="checkbox" data-id="GET-12"> <span class="id">GET-12</span></label><span class="title">ABS に進捗がなく play の記録があれば、ABS へ反映する</span></header>
+<p class="src"><a href="../get_test.go#L179">get_test.go:179</a> <code>TestGET_ReflectsWhenABSHasNoProgress</code></p>
+<img src="GET-12.svg" alt="GET-12 の図" loading="lazy">
+</article>
+<article class="card" id="GET-13">
+<header><label><input type="checkbox" data-id="GET-13"> <span class="id">GET-13</span></label><span class="title">同じエピソードに URL 違いの記録が 2 つあれば、時刻の古い順に処理し、新しい方が最後に残る</span></header>
+<p class="src"><a href="../get_test.go#L191">get_test.go:191</a> <code>TestGET_ProcessesRecordsOldestFirst</code></p>
+<img src="GET-13.svg" alt="GET-13 の図" loading="lazy">
+</article>
+<article class="card" id="GET-14">
+<header><label><input type="checkbox" data-id="GET-14"> <span class="id">GET-14</span></label><span class="title">goPodder の記録を取得できなければ、ABS には何もせず、元の GET を中継する</span></header>
+<p class="src"><a href="../get_test.go#L204">get_test.go:204</a> <code>TestGET_RelaysWhenHistoryFetchFails</code></p>
+<img src="GET-14.svg" alt="GET-14 の図" loading="lazy">
+</article>
+<article class="card" id="GET-15">
+<header><label><input type="checkbox" data-id="GET-15"> <span class="id">GET-15</span></label><span class="title">ABS の進捗を取得できなければ、どちらにも書き込まず、元の GET を中継する</span></header>
+<p class="src"><a href="../get_test.go#L218">get_test.go:218</a> <code>TestGET_RelaysWhenProgressFetchFails</code></p>
+<img src="GET-15.svg" alt="GET-15 の図" loading="lazy">
+</article>
+<article class="card" id="GET-16">
+<header><label><input type="checkbox" data-id="GET-16"> <span class="id">GET-16</span></label><span class="title">goPodder への書き戻しが失敗しても、元の GET を中継する</span></header>
+<p class="src"><a href="../get_test.go#L233">get_test.go:233</a> <code>TestGET_RelaysWhenWriteBackFails</code></p>
+<img src="GET-16.svg" alt="GET-16 の図" loading="lazy">
+</article>
+<article class="card" id="GET-17">
+<header><label><input type="checkbox" data-id="GET-17"> <span class="id">GET-17</span></label><span class="title">記録の取得は since=0 で行い、元の GET のクエリは変えずに中継する</span></header>
+<p class="src"><a href="../get_test.go#L247">get_test.go:247</a> <code>TestGET_FetchesHistoryWithSinceZero</code></p>
+<img src="GET-17.svg" alt="GET-17 の図" loading="lazy">
+</article>
+<article class="card" id="GET-18">
+<header><label><input type="checkbox" data-id="GET-18"> <span class="id">GET-18</span></label><span class="title">ブリッジが goPodder へ送るリクエストにも、クライアントの Authorization・Cookie を付ける</span></header>
+<p class="src"><a href="../get_test.go#L257">get_test.go:257</a> <code>TestGET_BridgeRequestsCarryClientAuth</code></p>
+<img src="GET-18.svg" alt="GET-18 の図" loading="lazy">
+</article>
+<article class="card" id="GET-19">
+<header><label><input type="checkbox" data-id="GET-19"> <span class="id">GET-19</span></label><span class="title">記録の取得が GOPODDER_TIMEOUT_SECONDS 以内に返らなくても、元の GET を中継する</span></header>
+<p class="src"><a href="../get_test.go#L269">get_test.go:269</a> <code>TestGET_RelaysWhenHistoryFetchTimesOut</code></p>
+<img src="GET-19.svg" alt="GET-19 の図" loading="lazy">
+</article>
+<article class="card" id="GET-20">
+<header><label><input type="checkbox" data-id="GET-20"> <span class="id">GET-20</span></label><span class="title">POST のときに照合できなかった記録も、索引の作り直しのあとの GET で ABS へ反映する</span></header>
+<p class="src"><a href="../get_test.go#L282">get_test.go:282</a> <code>TestGET_ReflectsActionUnmatchedAtPOSTAfterReindex</code></p>
+<img src="GET-20.svg" alt="GET-20 の図" loading="lazy">
+</article>
+<article class="card" id="GET-21">
+<header><label><input type="checkbox" data-id="GET-21"> <span class="id">GET-21</span></label><span class="title">同じ組に play の記録が複数あれば、時刻が新しいもので判定する</span></header>
+<p class="src"><a href="../get_test.go#L296">get_test.go:296</a> <code>TestGET_UsesNewestPlayAmongDuplicates</code></p>
+<img src="GET-21.svg" alt="GET-21 の図" loading="lazy">
+</article>
+<article class="card" id="GET-22">
+<header><label><input type="checkbox" data-id="GET-22"> <span class="id">GET-22</span></label><span class="title">位置が負・数値でない play の記録は、突き合わせに使わない（ep3 は対照）</span></header>
+<p class="src"><a href="../get_test.go#L312">get_test.go:312</a> <code>TestGET_IgnoresPlayRecordsWithInvalidPosition</code></p>
+<img src="GET-22.svg" alt="GET-22 の図" loading="lazy">
+</article>
+<article class="card" id="GET-23">
+<header><label><input type="checkbox" data-id="GET-23"> <span class="id">GET-23</span></label><span class="title">goPodder に記録がないエピソードは、ABS に進捗があっても書き戻さない（ep2 は対照）</span></header>
+<p class="src"><a href="../get_test.go#L334">get_test.go:334</a> <code>TestGET_IgnoresEpisodesUnknownToGoPodder</code></p>
+<img src="GET-23.svg" alt="GET-23 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-MCH" data-key="MCH" open><summary><h2>照合</h2><span class="count"></span></summary>
+<article class="card" id="MCH-01">
+<header><label><input type="checkbox" data-id="MCH-01"> <span class="id">MCH-01</span></label><span class="title">ABS のフィード URL の記録は、/api/feeds の対応づけでエピソードを見つける</span></header>
+<p class="src"><a href="../match_test.go#L10">match_test.go:10</a> <code>TestMatch_ByABSFeedURL</code></p>
+<img src="MCH-01.svg" alt="MCH-01 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-02">
+<header><label><input type="checkbox" data-id="MCH-02"> <span class="id">MCH-02</span></label><span class="title">フィード URL は、スキーム・ホスト・ポートが違っても同じエピソードとみなす</span></header>
+<p class="src"><a href="../match_test.go#L22">match_test.go:22</a> <code>TestMatch_FeedURLIgnoresSchemeHostPort</code></p>
+<img src="MCH-02.svg" alt="MCH-02 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-03">
+<header><label><input type="checkbox" data-id="MCH-03"> <span class="id">MCH-03</span></label><span class="title">ABS_ADMIN_TOKEN がなければ /api/feeds を呼ばず、元の配信 URL と GUID で照合する</span></header>
+<p class="src"><a href="../match_test.go#L34">match_test.go:34</a> <code>TestMatch_SkipsFeedStepWithoutAdminToken</code></p>
+<img src="MCH-03.svg" alt="MCH-03 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-04">
+<header><label><input type="checkbox" data-id="MCH-04"> <span class="id">MCH-04</span></label><span class="title">/api/feeds が 403 なら、元の配信 URL と GUID で照合する</span></header>
+<p class="src"><a href="../match_test.go#L51">match_test.go:51</a> <code>TestMatch_SkipsFeedStepWhenFeedsForbidden</code></p>
+<img src="MCH-04.svg" alt="MCH-04 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-05">
+<header><label><input type="checkbox" data-id="MCH-05"> <span class="id">MCH-05</span></label><span class="title">フィードのエピソードでも、ユーザーの索引にないものとは対応づけない（ep1 は対照）</span></header>
+<p class="src"><a href="../match_test.go#L68">match_test.go:68</a> <code>TestMatch_FeedMappingLimitedToUserIndex</code></p>
+<img src="MCH-05.svg" alt="MCH-05 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-06">
+<header><label><input type="checkbox" data-id="MCH-06"> <span class="id">MCH-06</span></label><span class="title">元の配信 URL が一致すれば、そのエピソードとみなす</span></header>
+<p class="src"><a href="../match_test.go#L86">match_test.go:86</a> <code>TestMatch_ByOriginalEnclosureURL</code></p>
+<img src="MCH-06.svg" alt="MCH-06 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-07">
+<header><label><input type="checkbox" data-id="MCH-07"> <span class="id">MCH-07</span></label><span class="title">スキーム・ホストの大小文字、既定のポート、#以降の違いは無視して比べる</span></header>
+<p class="src"><a href="../match_test.go#L96">match_test.go:96</a> <code>TestMatch_NormalizesURL</code></p>
+<img src="MCH-07.svg" alt="MCH-07 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-08">
+<header><label><input type="checkbox" data-id="MCH-08"> <span class="id">MCH-08</span></label><span class="title">パスとクエリは大小文字も含めて比べる（違えば一致しない、ep3 は対照）</span></header>
+<p class="src"><a href="../match_test.go#L115">match_test.go:115</a> <code>TestMatch_PathAndQueryAreCaseSensitive</code></p>
+<img src="MCH-08.svg" alt="MCH-08 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-09">
+<header><label><input type="checkbox" data-id="MCH-09"> <span class="id">MCH-09</span></label><span class="title">URL が違っても GUID が一致すれば、そのエピソードとみなす</span></header>
+<p class="src"><a href="../match_test.go#L133">match_test.go:133</a> <code>TestMatch_ByGUID</code></p>
+<img src="MCH-09.svg" alt="MCH-09 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-10">
+<header><label><input type="checkbox" data-id="MCH-10"> <span class="id">MCH-10</span></label><span class="title">ABS 側の元の配信 URL・GUID が null なら、その手順では一致しない（ep2 は対照）</span></header>
+<p class="src"><a href="../match_test.go#L143">match_test.go:143</a> <code>TestMatch_NullNeverMatches</code></p>
+<img src="MCH-10.svg" alt="MCH-10 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-11">
+<header><label><input type="checkbox" data-id="MCH-11"> <span class="id">MCH-11</span></label><span class="title">同じ URL に ABS のエピソードが 2 つあれば照合できない（GUID でも探さない、ep3 は対照）</span></header>
+<p class="src"><a href="../match_test.go#L159">match_test.go:159</a> <code>TestMatch_AmbiguousURLIsNotMatched</code></p>
+<img src="MCH-11.svg" alt="MCH-11 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-12">
+<header><label><input type="checkbox" data-id="MCH-12"> <span class="id">MCH-12</span></label><span class="title">フィード URL と元の配信 URL が別のエピソードを指すなら、フィード URL の方を採る</span></header>
+<p class="src"><a href="../match_test.go#L176">match_test.go:176</a> <code>TestMatch_FeedURLStepComesFirst</code></p>
+<img src="MCH-12.svg" alt="MCH-12 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-IDX" data-key="IDX" open><summary><h2>索引</h2><span class="count"></span></summary>
+<article class="card" id="IDX-01">
+<header><label><input type="checkbox" data-id="IDX-01"> <span class="id">IDX-01</span></label><span class="title">起動したら、batch/get で番組の詳細を取って索引を作る</span></header>
+<p class="src"><a href="../index_test.go#L11">index_test.go:11</a> <code>TestIndex_BuiltAtStartup</code></p>
+<img src="IDX-01.svg" alt="IDX-01 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-02">
+<header><label><input type="checkbox" data-id="IDX-02"> <span class="id">IDX-02</span></label><span class="title">索引を作り終える前に届いた記録は照合できないが、作り終えたあとの記録は反映する</span></header>
+<p class="src"><a href="../index_test.go#L19">index_test.go:19</a> <code>TestIndex_UnmatchedBeforeBuilt</code></p>
+<img src="IDX-02.svg" alt="IDX-02 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-03">
+<header><label><input type="checkbox" data-id="IDX-03"> <span class="id">IDX-03</span></label><span class="title">ABS_INDEX_SCHEDULE の時刻に作り直し、追加されたエピソードを照合できるようになる</span></header>
+<p class="src"><a href="../index_test.go#L33">index_test.go:33</a> <code>TestIndex_RebuiltOnSchedule</code></p>
+<img src="IDX-03.svg" alt="IDX-03 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-04">
+<header><label><input type="checkbox" data-id="IDX-04"> <span class="id">IDX-04</span></label><span class="title">照合できない記録が来ても、索引を作り直さない（ep1 は対照）</span></header>
+<p class="src"><a href="../index_test.go#L46">index_test.go:46</a> <code>TestIndex_NotRebuiltOnUnmatched</code></p>
+<img src="IDX-04.svg" alt="IDX-04 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-05">
+<header><label><input type="checkbox" data-id="IDX-05"> <span class="id">IDX-05</span></label><span class="title">索引の作り直しに失敗したら、前の索引を使い続ける</span></header>
+<p class="src"><a href="../index_test.go#L58">index_test.go:58</a> <code>TestIndex_KeepsPreviousOnFailure</code></p>
+<img src="IDX-05.svg" alt="IDX-05 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-06">
+<header><label><input type="checkbox" data-id="IDX-06"> <span class="id">IDX-06</span></label><span class="title">/api/feeds だけが失敗したら、フィードの対応づけなしの索引で照合する</span></header>
+<p class="src"><a href="../index_test.go#L71">index_test.go:71</a> <code>TestIndex_WorksWithoutFeedsWhenFeedsFail</code></p>
+<img src="IDX-06.svg" alt="IDX-06 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-07">
+<header><label><input type="checkbox" data-id="IDX-07"> <span class="id">IDX-07</span></label><span class="title">ポッドキャスト以外（本）のライブラリの番組一覧は取らない</span></header>
+<p class="src"><a href="../index_test.go#L89">index_test.go:89</a> <code>TestIndex_SkipsNonPodcastLibraries</code></p>
+<img src="IDX-07.svg" alt="IDX-07 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-08">
+<header><label><input type="checkbox" data-id="IDX-08"> <span class="id">IDX-08</span></label><span class="title">番組一覧は limit を付けずに（全件）取る</span></header>
+<p class="src"><a href="../index_test.go#L99">index_test.go:99</a> <code>TestIndex_ListsItemsWithoutLimit</code></p>
+<img src="IDX-08.svg" alt="IDX-08 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-09">
+<header><label><input type="checkbox" data-id="IDX-09"> <span class="id">IDX-09</span></label><span class="title">管理者のトークンは /api/feeds だけに使う</span></header>
+<p class="src"><a href="../index_test.go#L107">index_test.go:107</a> <code>TestIndex_AdminTokenOnlyForFeeds</code></p>
+<img src="IDX-09.svg" alt="IDX-09 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-10">
+<header><label><input type="checkbox" data-id="IDX-10"> <span class="id">IDX-10</span></label><span class="title">毎回全体を作り直すので、ABS から消えたエピソードは照合されなくなる</span></header>
+<p class="src"><a href="../index_test.go#L119">index_test.go:119</a> <code>TestIndex_RemovedEpisodeNoLongerMatches</code></p>
+<img src="IDX-10.svg" alt="IDX-10 の図" loading="lazy">
+</article>
+<article class="card" id="IDX-11">
+<header><label><input type="checkbox" data-id="IDX-11"> <span class="id">IDX-11</span></label><span class="title">何もしていない間は、ABS の進捗を取りに行かない</span></header>
+<p class="src"><a href="../index_test.go#L132">index_test.go:132</a> <code>TestIndex_DoesNotPollProgress</code></p>
+<img src="IDX-11.svg" alt="IDX-11 の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-CNF" data-key="CNF" open><summary><h2>比べ方</h2><span class="count"></span></summary>
+<article class="card" id="CNF-01-GET">
+<header><label><input type="checkbox" data-id="CNF-01-GET"> <span class="id">CNF-01-GET</span></label><span class="title">ABS に進捗がなければ反映する（GET）</span></header>
+<p class="src"><a href="../conflict_test.go#L23">conflict_test.go:23</a> <code>TestConflictGET_NoProgressReflects</code></p>
+<img src="CNF-01-GET.svg" alt="CNF-01-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-01-POST">
+<header><label><input type="checkbox" data-id="CNF-01-POST"> <span class="id">CNF-01-POST</span></label><span class="title">ABS に進捗がなければ反映する（POST）</span></header>
+<p class="src"><a href="../conflict_test.go#L13">conflict_test.go:13</a> <code>TestConflictPOST_NoProgressReflects</code></p>
+<img src="CNF-01-POST.svg" alt="CNF-01-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-02-GET">
+<header><label><input type="checkbox" data-id="CNF-02-GET"> <span class="id">CNF-02-GET</span></label><span class="title">記録の方が新しく位置が違えば、ABS へ反映する（GET）</span></header>
+<p class="src"><a href="../conflict_test.go#L46">conflict_test.go:46</a> <code>TestConflictGET_NewerGoPodderReflects</code></p>
+<img src="CNF-02-GET.svg" alt="CNF-02-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-02-POST">
+<header><label><input type="checkbox" data-id="CNF-02-POST"> <span class="id">CNF-02-POST</span></label><span class="title">記録の方が新しく位置が違えば、ABS へ反映する（POST）</span></header>
+<p class="src"><a href="../conflict_test.go#L35">conflict_test.go:35</a> <code>TestConflictPOST_NewerGoPodderReflects</code></p>
+<img src="CNF-02-POST.svg" alt="CNF-02-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-03-GET">
+<header><label><input type="checkbox" data-id="CNF-03-GET"> <span class="id">CNF-03-GET</span></label><span class="title">ABS の方が新しく位置が違えば、goPodder へ書き戻す（GET）</span></header>
+<p class="src"><a href="../conflict_test.go#L71">conflict_test.go:71</a> <code>TestConflictGET_NewerABSWritesBack</code></p>
+<img src="CNF-03-GET.svg" alt="CNF-03-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-03-POST">
+<header><label><input type="checkbox" data-id="CNF-03-POST"> <span class="id">CNF-03-POST</span></label><span class="title">ABS の方が新しく位置が違っても、POST では何もしない（ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L59">conflict_test.go:59</a> <code>TestConflictPOST_NewerABSDoesNothing</code></p>
+<img src="CNF-03-POST.svg" alt="CNF-03-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-04-GET">
+<header><label><input type="checkbox" data-id="CNF-04-GET"> <span class="id">CNF-04-GET</span></label><span class="title">どちらも聴き終わっていれば、時刻が違っても何もしない（GET、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L96">conflict_test.go:96</a> <code>TestConflictGET_BothFinishedDoesNothing</code></p>
+<img src="CNF-04-GET.svg" alt="CNF-04-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-04-POST">
+<header><label><input type="checkbox" data-id="CNF-04-POST"> <span class="id">CNF-04-POST</span></label><span class="title">どちらも聴き終わっていれば、時刻が違っても何もしない（POST、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L84">conflict_test.go:84</a> <code>TestConflictPOST_BothFinishedDoesNothing</code></p>
+<img src="CNF-04-POST.svg" alt="CNF-04-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-05-GET">
+<header><label><input type="checkbox" data-id="CNF-05-GET"> <span class="id">CNF-05-GET</span></label><span class="title">どちらも聴き終わっておらず位置の差が 1 秒以内なら、何もしない（GET、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L122">conflict_test.go:122</a> <code>TestConflictGET_WithinOneSecondDoesNothing</code></p>
+<img src="CNF-05-GET.svg" alt="CNF-05-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-05-POST">
+<header><label><input type="checkbox" data-id="CNF-05-POST"> <span class="id">CNF-05-POST</span></label><span class="title">どちらも聴き終わっておらず位置の差が 1 秒以内なら、何もしない（POST、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L110">conflict_test.go:110</a> <code>TestConflictPOST_WithinOneSecondDoesNothing</code></p>
+<img src="CNF-05-POST.svg" alt="CNF-05-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-06-GET">
+<header><label><input type="checkbox" data-id="CNF-06-GET"> <span class="id">CNF-06-GET</span></label><span class="title">片方だけ聴き終わっていれば、位置が同じでも違う状態とみなす（GET）</span></header>
+<p class="src"><a href="../conflict_test.go#L147">conflict_test.go:147</a> <code>TestConflictGET_FinishedDiffersReflects</code></p>
+<img src="CNF-06-GET.svg" alt="CNF-06-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-06-POST">
+<header><label><input type="checkbox" data-id="CNF-06-POST"> <span class="id">CNF-06-POST</span></label><span class="title">片方だけ聴き終わっていれば、位置が同じでも違う状態とみなす（POST）</span></header>
+<p class="src"><a href="../conflict_test.go#L136">conflict_test.go:136</a> <code>TestConflictPOST_FinishedDiffersReflects</code></p>
+<img src="CNF-06-POST.svg" alt="CNF-06-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-07-GET">
+<header><label><input type="checkbox" data-id="CNF-07-GET"> <span class="id">CNF-07-GET</span></label><span class="title">時刻が等しければ、位置が違っても何もしない（GET、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L172">conflict_test.go:172</a> <code>TestConflictGET_EqualTimeDoesNothing</code></p>
+<img src="CNF-07-GET.svg" alt="CNF-07-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-07-POST">
+<header><label><input type="checkbox" data-id="CNF-07-POST"> <span class="id">CNF-07-POST</span></label><span class="title">時刻が等しければ、位置が違っても何もしない（POST、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L160">conflict_test.go:160</a> <code>TestConflictPOST_EqualTimeDoesNothing</code></p>
+<img src="CNF-07-POST.svg" alt="CNF-07-POST の図" loading="lazy">
+</article>
+<article class="card" id="CNF-08-GET">
+<header><label><input type="checkbox" data-id="CNF-08-GET"> <span class="id">CNF-08-GET</span></label><span class="title">時刻は秒で比べる（ABS が 0.9 秒だけ新しくても等しい）（GET、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L198">conflict_test.go:198</a> <code>TestConflictGET_ComparesInSeconds</code></p>
+<img src="CNF-08-GET.svg" alt="CNF-08-GET の図" loading="lazy">
+</article>
+<article class="card" id="CNF-08-POST">
+<header><label><input type="checkbox" data-id="CNF-08-POST"> <span class="id">CNF-08-POST</span></label><span class="title">時刻は秒で比べる（ABS が 0.9 秒だけ新しくても等しい）（POST、ep2 は対照）</span></header>
+<p class="src"><a href="../conflict_test.go#L186">conflict_test.go:186</a> <code>TestConflictPOST_ComparesInSeconds</code></p>
+<img src="CNF-08-POST.svg" alt="CNF-08-POST の図" loading="lazy">
+</article>
+</details>
+<details class="sec" id="g-FMT" data-key="FMT" open><summary><h2>データ形式</h2><span class="count"></span></summary>
+<article class="card" id="FMT-01">
+<header><label><input type="checkbox" data-id="FMT-01"> <span class="id">FMT-01</span></label><span class="title">時刻の Z・小数秒・時差を正しく読む（ABS の 09:06 と比べる）</span></header>
+<p class="src"><a href="../format_test.go#L11">format_test.go:11</a> <code>TestFormat_AcceptsTimestampVariants</code></p>
+<img src="FMT-01.svg" alt="FMT-01 の図" loading="lazy">
+</article>
+<article class="card" id="FMT-02">
+<header><label><input type="checkbox" data-id="FMT-02"> <span class="id">FMT-02</span></label><span class="title">書き戻す時刻は UTC の YYYY-MM-DDTHH:MM:SS（ミリ秒は切り捨て、Z なし）</span></header>
+<p class="src"><a href="../format_test.go#L31">format_test.go:31</a> <code>TestFormat_WritesTimestampWithoutZone</code></p>
+<img src="FMT-02.svg" alt="FMT-02 の図" loading="lazy">
+</article>
+<article class="card" id="FMT-03">
+<header><label><input type="checkbox" data-id="FMT-03"> <span class="id">FMT-03</span></label><span class="title">位置・長さが小数でも受け付ける</span></header>
+<p class="src"><a href="../format_test.go#L43">format_test.go:43</a> <code>TestFormat_AcceptsDecimalNumbers</code></p>
+<img src="FMT-03.svg" alt="FMT-03 の図" loading="lazy">
+</article>
+</details>
+</main>
+<script>
+(function () {
+  var P = 'e2e-diagrams:';
+  function load(k, d) { try { var v = localStorage.getItem(P + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(P + k, JSON.stringify(v)); } catch (e) {} }
+  var checked = load('checked', {}), open = load('open', {});
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('input[data-id]'));
+  var secs = Array.prototype.slice.call(document.querySelectorAll('details.sec'));
+  function paint(cb) { cb.closest('.card').classList.toggle('checked', cb.checked); }
+  function refresh() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    document.querySelector('.bar .total').textContent = done + ' / ' + boxes.length;
+    secs.forEach(function (s) {
+      var bs = boxes.filter(function (b) { return s.contains(b); });
+      var d = bs.filter(function (b) { return b.checked; }).length;
+      var c = s.querySelector('.count');
+      c.textContent = d + ' / ' + bs.length;
+      c.classList.toggle('done', d === bs.length);
+    });
+  }
+  boxes.forEach(function (cb) {
+    cb.checked = !!checked[cb.dataset.id];
+    paint(cb);
+    cb.addEventListener('change', function () {
+      if (cb.checked) checked[cb.dataset.id] = true; else delete checked[cb.dataset.id];
+      save('checked', checked); paint(cb); refresh();
+    });
+  });
+  secs.forEach(function (s) {
+    var k = s.dataset.key;
+    if (open[k] !== undefined) s.open = open[k];
+    s.addEventListener('toggle', function () { open[k] = s.open; save('open', open); });
+  });
+  document.querySelector('.bar').addEventListener('click', function (e) {
+    var a = e.target.dataset && e.target.dataset.act;
+    if (a === 'open' || a === 'close') secs.forEach(function (s) { s.open = a === 'open'; });
+    if (a === 'reset' && confirm('チェックをすべて外しますか？')) {
+      checked = {}; save('checked', checked);
+      boxes.forEach(function (b) { b.checked = false; paint(b); });
+    }
+    refresh();
+  });
+  if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.closest('details').open = true; }
+  // 左のメニュー：閉じている見出しは開いてから飛ぶ。表示中のグループを強調する
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.side a'));
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      var t = document.getElementById(a.getAttribute('href').slice(1));
+      if (t) { t.open = true; open[t.dataset.key] = true; save('open', open); }
+    });
+  });
+  function markCurrent() {
+    var cur = null;
+    secs.forEach(function (s) { if (s.getBoundingClientRect().top < window.innerHeight / 3) cur = s; });
+    links.forEach(function (a) { a.classList.toggle('current', !!cur && a.getAttribute('href') === '#' + cur.id); });
+  }
+  window.addEventListener('scroll', markCurrent, { passive: true });
+  markCurrent();
+  refresh();
+})();
+</script>
+</body>
+</html>
