@@ -40,7 +40,7 @@ func NewServer(cfg *Config, log *slog.Logger) *Server {
 
 // RunIndex は索引を起動時に作り、以後 ABS_INDEX_SCHEDULE の時刻に作り直す。ctx が終わるまで戻らない。
 func (s *Server) RunIndex(ctx context.Context) {
-	s.index.run(ctx, s.cfg.IndexSchedule, s.abs, s.log)
+	s.index.run(ctx, s.cfg.IndexSchedule, s.cfg.Location, s.abs, s.log)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

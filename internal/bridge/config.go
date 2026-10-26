@@ -23,6 +23,7 @@ type Config struct {
 	ABSTimeout      time.Duration
 	IndexSchedule   cron.Schedule
 	LogLevel        slog.Level
+	Location        *time.Location // TZ。cron 式とログの時刻に使う
 }
 
 // LoadConfig は getenv から設定を読み取る。値が空の変数は未設定として扱う。
@@ -67,6 +68,14 @@ func LoadConfig(getenv func(string) string) (*Config, error) {
 		c.LogLevel = slog.LevelError
 	default:
 		return nil, fmt.Errorf("LOG_LEVEL: invalid value %q", lv)
+	}
+	tz := getenv("TZ")
+	if tz == "" {
+		tz = "UTC"
+	}
+	// "Local" は IANA のタイムゾーン名ではないので受け付けない。
+	if c.Location, err = time.LoadLocation(tz); err != nil || tz == "Local" {
+		return nil, fmt.Errorf("TZ: invalid time zone %q", tz)
 	}
 	return c, nil
 }

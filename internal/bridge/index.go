@@ -200,11 +200,11 @@ func (h *indexHolder) rebuild(ctx context.Context, abs *absClient, log *slog.Log
 	log.Info("episode index built", "episodes", len(ix.duration), "feedIds", len(ix.byFeedID))
 }
 
-// run は起動時に 1 回索引を作り、以後 sched の時刻に作り直す。
-func (h *indexHolder) run(ctx context.Context, sched cron.Schedule, abs *absClient, log *slog.Logger) {
+// run は起動時に 1 回索引を作り、以後 sched の時刻（loc で解釈する）に作り直す。
+func (h *indexHolder) run(ctx context.Context, sched cron.Schedule, loc *time.Location, abs *absClient, log *slog.Logger) {
 	h.rebuild(ctx, abs, log)
 	for {
-		next := sched.Next(time.Now())
+		next := sched.Next(time.Now().In(loc))
 		if next.IsZero() { // 該当する時刻がない
 			return
 		}

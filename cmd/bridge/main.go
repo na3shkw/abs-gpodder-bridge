@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	_ "time/tzdata" // OS にタイムゾーンのデータがなくても TZ を解釈できるようにする
 
 	"abs-gpodder-bridge/internal/bridge"
 )
@@ -18,7 +19,16 @@ func main() {
 		slog.New(slog.NewTextHandler(os.Stdout, nil)).Error("invalid configuration", "error", err)
 		os.Exit(1)
 	}
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.LogLevel}))
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: cfg.LogLevel,
+		// ログの時刻は TZ で出す。
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.TimeKey && len(groups) == 0 {
+				a.Value = slog.TimeValue(a.Value.Time().In(cfg.Location))
+			}
+			return a
+		},
+	}))
 
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(cfg.ListenPort))
 	if err != nil {
