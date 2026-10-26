@@ -13,6 +13,10 @@ fi
 # 実装リポジトリ（実装エージェントのコンテナに /workspace としてマウントする）
 IMPL_DIR="${IMPL_DIR:-$(cd "$TESTS_REPO/.." && pwd)/abs-gpodder-bridge}"
 
+# 仕様書のディレクトリ（git 管理外）。実装エージェントのコンテナに /spec として読み取り専用で見せる。
+# 最終的に統合するどちらのリポジトリにも入れないため、コミットしない。
+SPEC_DIR="${SPEC_DIR:-$TESTS_REPO/docs}"
+
 # ホスト側の状態ディレクトリ（git 管理外）。
 # このリポジトリ自体はコンテナにマウントしないので、ここに置いてもテストは見えない。
 STATE_DIR="${STATE_DIR:-$TESTS_REPO/.state}"
@@ -20,6 +24,8 @@ STATE_DIR="${STATE_DIR:-$TESTS_REPO/.state}"
 IMPL_CLAUDE_DIR="$STATE_DIR/claude"        # 実装エージェントの Claude Code 設定・セッション履歴
 IMPL_CACHE_DIR="$STATE_DIR/impl-cache"     # 実装エージェントの Go キャッシュなど
 MAILBOX_DIR="$STATE_DIR/mailbox"           # テスト依頼と結果の受け渡し
+IMPL_TOOLS_DIR="$STATE_DIR/tools"          # ホストから取り込んだツール（rtk）。seed-impl-config が作る
+IMPL_RTK_CONFIG_DIR="$STATE_DIR/rtk-config" # ホストから取り込んだ rtk の設定
 # コンテナに見せないもの
 PRIVATE_DIR="$STATE_DIR/private"           # 生ログ（テスト内容を含むため非公開）
 BUILD_CACHE_DIR="$STATE_DIR/build-cache"   # 実装ビルド用の Go キャッシュ

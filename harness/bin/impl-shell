@@ -7,10 +7,14 @@
 #   impl-shell bash            コンテナ内のシェル
 #   --rebuild                  イメージを作り直す（Claude Code の更新もこれで行う）
 #
-# コンテナに見せるのは次の 3 つだけ:
+# コンテナに見せるのは次のものだけ:
 #   $IMPL_DIR        -> /workspace
+#   $SPEC_DIR        -> /spec               （仕様書、読み取り専用）
 #   $IMPL_CLAUDE_DIR -> /home/dev/.claude   （セッション履歴をホストに永続化）
+#   $IMPL_CACHE_DIR  -> /home/dev/.cache    （Go のキャッシュ）
 #   $MAILBOX_DIR     -> /mailbox            （hidden-test での受け渡し）
+#   $IMPL_TOOLS_DIR/rtk  -> /usr/local/bin/rtk     （読み取り専用、seed-impl-config で取り込む）
+#   $IMPL_RTK_CONFIG_DIR -> /home/dev/.config/rtk  （読み取り専用）
 set -euo pipefail
 source "$(dirname "$0")/../config.sh"
 
@@ -22,7 +26,23 @@ if [[ ! -d "$IMPL_DIR/.git" ]]; then
   exit 1
 fi
 
+if [[ ! -f "$SPEC_DIR/interface-spec.md" ]]; then
+  echo "仕様書が見つかりません: $SPEC_DIR/interface-spec.md" >&2
+  exit 1
+fi
+# シンボリックリンクはコンテナ内でリンク先が存在せず読めないので、実体を置く
+if [[ -n "$(find "$SPEC_DIR" -type l -print -quit)" ]]; then
+  echo "仕様書のディレクトリにシンボリックリンクがあります（実体を置いてください）: $SPEC_DIR" >&2
+  exit 1
+fi
+
+if [[ ! -x "$IMPL_TOOLS_DIR/rtk" ]]; then
+  echo "rtk が取り込まれていません。先に harness/bin/seed-impl-config を実行してください" >&2
+  exit 1
+fi
+
 ensure_state_dirs
+mkdir -p "$IMPL_RTK_CONFIG_DIR"
 
 if [[ $rebuild -eq 1 ]] || ! docker image inspect "$IMPL_IMAGE" > /dev/null 2>&1; then
   build_args=(--build-arg "UID=$(id -u)" --build-arg "GID=$(id -g)")
@@ -59,9 +79,12 @@ exec docker run --rm "${tty_flags[@]}" \
   --name "abs-gpodder-bridge-impl-$$" \
   --hostname impl \
   -v "$IMPL_DIR:/workspace" \
+  -v "$SPEC_DIR:/spec:ro" \
   -v "$IMPL_CLAUDE_DIR:/home/dev/.claude" \
   -v "$IMPL_CACHE_DIR:/home/dev/.cache" \
   -v "$MAILBOX_DIR:/mailbox" \
+  -v "$IMPL_TOOLS_DIR/rtk:/usr/local/bin/rtk:ro" \
+  -v "$IMPL_RTK_CONFIG_DIR:/home/dev/.config/rtk:ro" \
   -e GIT_AUTHOR_NAME="$git_name" -e GIT_AUTHOR_EMAIL="$git_email" \
   -e GIT_COMMITTER_NAME="$git_name" -e GIT_COMMITTER_EMAIL="$git_email" \
   "${auth_flags[@]}" \

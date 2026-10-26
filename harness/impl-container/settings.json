@@ -1,0 +1,74 @@
+{
+  "model": "opus",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "gopls-lsp@claude-plugins-official": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(go:*)",
+      "Bash(rtk go:*)",
+      "Bash(gofmt:*)",
+      "Bash(hidden-test:*)",
+      "Bash(git status:*)",
+      "Bash(rtk git status:*)",
+      "Bash(git diff:*)",
+      "Bash(rtk git diff:*)",
+      "Bash(git log:*)",
+      "Bash(rtk git log:*)",
+      "Bash(git show:*)",
+      "Bash(rtk git show:*)",
+      "Bash(git branch:*)",
+      "Bash(rtk git branch:*)",
+      "Bash(git switch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)",
+      "Bash(rtk git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git mv:*)",
+      "Bash(git commit:*)",
+      "Bash(rtk git commit:*)",
+      "Bash(ls:*)",
+      "Bash(rtk ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(rtk grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(rtk find:*)",
+      "Bash(tree:*)",
+      "Bash(rtk tree:*)",
+      "Bash(jq:*)",
+      "Bash(mkdir:*)",
+      "Bash(rtk gain:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(rtk git push:*)",
+      "Bash(rtk proxy git push:*)",
+      "Bash(git remote add:*)",
+      "Bash(rtk git remote add:*)",
+      "Bash(gh:*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ]
+  }
+}

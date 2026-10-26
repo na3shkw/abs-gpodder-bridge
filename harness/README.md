@@ -3,6 +3,7 @@
 実装エージェント（Claude Code）からテストを隠したまま、テストを実行して結果だけを返す仕組み。
 
 - 実装リポジトリ：`../abs-gpodder-bridge`（`IMPL_DIR` で変更できる）
+- 仕様書：`docs/interface-spec.md`（git 管理外）。どちらのリポジトリにもコミットせず、コンテナには `/spec` として読み取り専用で見せる。シンボリックリンクではなく実体を置くこと
 - このリポジトリ：テストとハーネスだけを置く。**公開リポジトリへ push しないこと**（コンテナはインターネットにつながるため）
 
 ## 構成
@@ -10,11 +11,14 @@
 ```
 ホスト
 ├─ abs-gpodder-bridge-tests/            ← テスト（コンテナには見せない）
+├─ abs-gpodder-bridge-tests/docs/       → /spec（読み取り専用）仕様書。git 管理外。SPEC_DIR で変更できる
 ├─ ~/.claude/                           ← テスト作成側の履歴（コンテナには見せない）
 ├─ abs-gpodder-bridge-tests/.state/     ← git 管理外。STATE_DIR で変更できる
 │   ├─ claude/       → /home/dev/.claude  実装エージェントの設定・認証情報・セッション履歴（永続）
 │   ├─ impl-cache/   → /home/dev/.cache   Go のキャッシュ
 │   ├─ mailbox/      → /mailbox           テスト依頼と結果の受け渡し
+│   ├─ tools/rtk     → /usr/local/bin/rtk （読み取り専用）ホストから取り込んだ rtk
+│   ├─ rtk-config/   → /home/dev/.config/rtk （読み取り専用）
 │   ├─ private/      （非公開）           テストの生ログ
 │   └─ build-cache/  （非公開）           実装をビルドするときのキャッシュ
 │
@@ -33,18 +37,32 @@
 ## 使い方
 
 ```sh
+# 最初に一度だけ、ホストの設定をコンテナ用に取り込む（その時点のスナップショット。--force で取り込み直す）
+harness/bin/seed-impl-config
+
 # 実装エージェントを起動する（watcher も自動で起動する）
 harness/bin/impl-shell                  # claude
 harness/bin/impl-shell claude --resume  # 前回のセッションを再開
 harness/bin/impl-shell bash             # コンテナ内のシェル
 harness/bin/impl-shell --rebuild        # イメージを作り直す（Claude Code の更新）
 
-# 隔離できているか確認する（e2e/CANARY の文字列をコンテナ内から探す）
+# 隔離できているか確認する（e2e/CANARY の文字列をコンテナ内から探し、/spec が読み取り専用か確かめる）
 harness/bin/verify-isolation
 
 # ホストで直接テストを実行する（生ログは private/runs/<id>/ に残る）
 harness/bin/run-hidden-tests [-run PATTERN]
 ```
+
+### 実装エージェントの設定
+
+`seed-impl-config` が `.state/` に次のものを置く。`~/.claude` をそのままマウントしないこと（テスト作成側のセッション履歴やメモリが入っている）。
+
+- `~/.claude/CLAUDE.md`・`RTK.md` のコピー
+- `harness/impl-container/settings.json`：rtk の hook、gopls-lsp プラグイン、許可の範囲（コミットまで許可、`git push` と `gh` は禁止）
+- rtk のバイナリと `~/.config/rtk/` の設定のコピー
+- gopls-lsp プラグイン（コンテナ内でインストール。gopls はイメージに入っている）
+
+実装リポジトリにはリモートを登録せず、コンテナに GitHub の認証情報も渡さないので、許可の設定を抜けても push はできない。
 
 ### 認証
 
@@ -79,3 +97,4 @@ hidden-test -run Healthz   # go test -run のパターンで絞り込み
 
 - `go build ./cmd/bridge` でブリッジのバイナリができること（`CGO_ENABLED=0`、`GOTOOLCHAIN=local`）
 - 設定は環境変数だけで受け取ること（仕様 2.1 節）。テストは指定した環境変数以外を渡さない
+- 仕様は `/spec/interface-spec.md` を読むこと（変更はできない）

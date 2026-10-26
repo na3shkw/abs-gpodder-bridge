@@ -25,3 +25,15 @@ if [[ -n "$found" ]]; then
   exit 1
 fi
 echo "OK: 実装エージェントのコンテナからカナリアは見えません" >&2
+
+# 仕様書が読めて、書き換えられないこと
+if ! "$HARNESS_DIR/bin/impl-shell" bash -c '
+  test -r /spec/interface-spec.md || { echo "仕様書が読めません" >&2; exit 1; }
+  if touch /spec/interface-spec.md 2>/dev/null || touch /spec/.write-test 2>/dev/null; then
+    echo "仕様書が書き換えられます" >&2; exit 1
+  fi
+'; then
+  echo "NG: /spec の状態が想定と違います" >&2
+  exit 1
+fi
+echo "OK: /spec の仕様書は読み取り専用で見えています" >&2
