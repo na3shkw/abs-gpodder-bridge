@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
 // episodeRef は ABS エピソードを一意に識別する組。
@@ -199,11 +201,11 @@ func (h *indexHolder) rebuild(ctx context.Context, abs *absClient, log *slog.Log
 }
 
 // run は起動時に 1 回索引を作り、以後 sched の時刻に作り直す。
-func (h *indexHolder) run(ctx context.Context, sched Schedule, abs *absClient, log *slog.Logger) {
+func (h *indexHolder) run(ctx context.Context, sched cron.Schedule, abs *absClient, log *slog.Logger) {
 	h.rebuild(ctx, abs, log)
 	for {
-		next, ok := sched.Next(time.Now())
-		if !ok {
+		next := sched.Next(time.Now())
+		if next.IsZero() { // 該当する時刻がない
 			return
 		}
 		select {

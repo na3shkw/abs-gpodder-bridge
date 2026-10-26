@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/robfig/cron/v3"
 )
 
 // Config は環境変数から読み取った設定（仕様 2.1 節）。
@@ -19,7 +21,7 @@ type Config struct {
 	ABSToken        string
 	ABSAdminToken   string // 空なら未設定
 	ABSTimeout      time.Duration
-	IndexSchedule   Schedule
+	IndexSchedule   cron.Schedule
 	LogLevel        slog.Level
 }
 
@@ -51,7 +53,7 @@ func LoadConfig(getenv func(string) string) (*Config, error) {
 	if sched == "" {
 		sched = "@every 15m"
 	}
-	if c.IndexSchedule, err = ParseSchedule(sched); err != nil {
+	if c.IndexSchedule, err = cron.ParseStandard(sched); err != nil {
 		return nil, fmt.Errorf("ABS_INDEX_SCHEDULE: %w", err)
 	}
 	switch lv := getenv("LOG_LEVEL"); lv {
