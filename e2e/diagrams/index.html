@@ -55,7 +55,7 @@ details.sec { scroll-margin-top: 56px; }
 <main>
 <h1>e2e テストシナリオ図解</h1>
 <div class="bar"><span>チェック <span class="total"></span></span><button type="button" data-act="open">すべて開く</button><button type="button" data-act="close">すべて閉じる</button><button type="button" data-act="reset">チェックをすべて外す</button></div>
-<p class="lead">テスト 1 件につき 1 枚の図。全 96 件。図はテストの記述（DSL）から生成している。</p>
+<p class="lead">テスト 1 件につき 1 枚の図。全 98 件。図はテストの記述（DSL）から生成している。</p>
 <div class="legend"><span><b class="ok">✓</b> 起きるべきこと</span><span><b class="ng">✗</b> 起きてはならないこと</span><span>時刻は 09:00 起点の例、位置・長さは秒</span></div>
 <nav class="side" aria-label="グループ"><ul>
 <li><a href="#g-CFG">起動・設定</a></li>
@@ -81,17 +81,17 @@ details.sec { scroll-margin-top: 56px; }
 </article>
 <article class="card" id="CFG-03">
 <header><label><input type="checkbox" data-id="CFG-03"> <span class="id">CFG-03</span></label><span class="title">URL の末尾の / の有無にかかわらず、同じ先へ送る</span></header>
-<p class="src"><a href="../config_test.go#L38">config_test.go:38</a> <code>TestConfig_AcceptsTrailingSlashInURLs</code></p>
+<p class="src"><a href="../config_test.go#L40">config_test.go:40</a> <code>TestConfig_AcceptsTrailingSlashInURLs</code></p>
 <img src="CFG-03.svg" alt="CFG-03 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-04">
 <header><label><input type="checkbox" data-id="CFG-04"> <span class="id">CFG-04</span></label><span class="title">LISTEN_PORT を指定しなければ、既定の 8080 で待ち受ける</span></header>
-<p class="src"><a href="../config_test.go#L48">config_test.go:48</a> <code>TestConfig_ListensOnDefaultPort</code></p>
+<p class="src"><a href="../config_test.go#L50">config_test.go:50</a> <code>TestConfig_ListensOnDefaultPort</code></p>
 <img src="CFG-04.svg" alt="CFG-04 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-05">
 <header><label><input type="checkbox" data-id="CFG-05"> <span class="id">CFG-05</span></label><span class="title">正しい値の環境変数なら起動する</span></header>
-<p class="src"><a href="../config_test.go#L57">config_test.go:57</a> <code>TestConfig_StartsWithValidValues</code></p>
+<p class="src"><a href="../config_test.go#L59">config_test.go:59</a> <code>TestConfig_StartsWithValidValues</code></p>
 <img src="CFG-05.svg" alt="CFG-05 の図" loading="lazy">
 </article>
 </details>
@@ -562,8 +562,18 @@ details.sec { scroll-margin-top: 56px; }
 </article>
 <article class="card" id="FMT-03">
 <header><label><input type="checkbox" data-id="FMT-03"> <span class="id">FMT-03</span></label><span class="title">位置・長さが小数でも受け付ける</span></header>
-<p class="src"><a href="../format_test.go#L43">format_test.go:43</a> <code>TestFormat_AcceptsDecimalNumbers</code></p>
+<p class="src"><a href="../format_test.go#L68">format_test.go:68</a> <code>TestFormat_AcceptsDecimalNumbers</code></p>
 <img src="FMT-03.svg" alt="FMT-03 の図" loading="lazy">
+</article>
+<article class="card" id="FMT-04">
+<header><label><input type="checkbox" data-id="FMT-04"> <span class="id">FMT-04</span></label><span class="title">TZ を設定しても、受け取る時刻は UTC として読む（ABS の 09:06 と比べる）</span></header>
+<p class="src"><a href="../format_test.go#L43">format_test.go:43</a> <code>TestFormat_ReadsTimestampAsUTCRegardlessOfTZ</code></p>
+<img src="FMT-04.svg" alt="FMT-04 の図" loading="lazy">
+</article>
+<article class="card" id="FMT-05">
+<header><label><input type="checkbox" data-id="FMT-05"> <span class="id">FMT-05</span></label><span class="title">TZ を設定しても、書き戻す時刻は UTC</span></header>
+<p class="src"><a href="../format_test.go#L55">format_test.go:55</a> <code>TestFormat_WritesTimestampInUTCRegardlessOfTZ</code></p>
+<img src="FMT-05.svg" alt="FMT-05 の図" loading="lazy">
 </article>
 </details>
 </main>

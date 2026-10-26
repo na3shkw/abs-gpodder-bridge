@@ -39,6 +39,31 @@ func TestFormat_WritesTimestampWithoutZone(t *testing.T) {
 		Run()
 }
 
+// 図: diagrams/FMT-04.svg
+func TestFormat_ReadsTimestampAsUTCRegardlessOfTZ(t *testing.T) {
+	ep1 := NewEpisode("ep1")
+	New(t, "FMT-04", "TZ を設定しても、受け取る時刻は UTC として読む（ABS の 09:06 と比べる）").
+		Env("TZ", "Asia/Tokyo").
+		ABSEpisode(ep1).
+		ABSProgress(Progress{Ep: ep1, CurrentTime: 300, Duration: 600, LastUpdate: T(6)}).
+		ClientPOST(Play(ep1).Pos(100).Total(600).At(T(7))).
+		ExpectPATCH(ep1, B("currentTime", 100, "duration", 600)).
+		Run()
+}
+
+// 図: diagrams/FMT-05.svg
+func TestFormat_WritesTimestampInUTCRegardlessOfTZ(t *testing.T) {
+	ep1 := NewEpisode("ep1")
+	New(t, "FMT-05", "TZ を設定しても、書き戻す時刻は UTC").
+		Env("TZ", "Asia/Tokyo").
+		ABSEpisode(ep1).
+		ABSProgress(Progress{Ep: ep1, CurrentTime: 300, Duration: 600, LastUpdate: T(10)}).
+		GoPodderRecord(Play(ep1).Pos(50).Total(600).At(T(1))).
+		ClientGET().
+		ExpectGoPodderWrite(Play(ep1).Pos(300).Total(600).At(T(10))).
+		Run()
+}
+
 // 図: diagrams/FMT-03.svg
 func TestFormat_AcceptsDecimalNumbers(t *testing.T) {
 	ep1 := NewEpisode("ep1")

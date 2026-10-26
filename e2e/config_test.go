@@ -29,6 +29,8 @@ func TestConfig_ExitsOnInvalidValue(t *testing.T) {
 			Variant{Label: "ABS_TIMEOUT_SECONDS=abc", Set: map[string]string{"ABS_TIMEOUT_SECONDS": "abc"}},
 			Variant{Label: "ABS_INDEX_SCHEDULE=every hour", Set: map[string]string{"ABS_INDEX_SCHEDULE": "every hour"}},
 			Variant{Label: "LOG_LEVEL=verbose", Set: map[string]string{"LOG_LEVEL": "verbose"}},
+			Variant{Label: "TZ=Asia/Tokio", Set: map[string]string{"TZ": "Asia/Tokio"}},
+			Variant{Label: "ABS_INDEX_SCHEDULE=0 7 * * 7", Set: map[string]string{"ABS_INDEX_SCHEDULE": "0 7 * * 7"}},
 		).
 		ExpectEveryExitCode(1).
 		Run()
@@ -59,10 +61,13 @@ func TestConfig_StartsWithValidValues(t *testing.T) {
 		StartVariants(
 			Variant{Label: "ABS_INDEX_SCHEDULE=30 7 * * *", Set: map[string]string{"ABS_INDEX_SCHEDULE": "30 7 * * *"}},
 			Variant{Label: "ABS_INDEX_SCHEDULE=@every 15m", Set: map[string]string{"ABS_INDEX_SCHEDULE": "@every 15m"}},
+			Variant{Label: "ABS_INDEX_SCHEDULE=0 7 * JAN MON", Set: map[string]string{"ABS_INDEX_SCHEDULE": "0 7 * JAN MON"}},
+			Variant{Label: "ABS_INDEX_SCHEDULE=@daily", Set: map[string]string{"ABS_INDEX_SCHEDULE": "@daily"}},
 			Variant{Label: "LOG_LEVEL=debug", Set: map[string]string{"LOG_LEVEL": "debug"}},
 			Variant{Label: "LOG_LEVEL=info", Set: map[string]string{"LOG_LEVEL": "info"}},
 			Variant{Label: "LOG_LEVEL=warn", Set: map[string]string{"LOG_LEVEL": "warn"}},
 			Variant{Label: "LOG_LEVEL=error", Set: map[string]string{"LOG_LEVEL": "error"}},
+			Variant{Label: "TZ=Asia/Tokyo", Set: map[string]string{"TZ": "Asia/Tokyo"}},
 			Variant{Label: "ABS_ADMIN_TOKEN・2 つのタイムアウトあり", Set: map[string]string{"ABS_ADMIN_TOKEN": "x", "GOPODDER_TIMEOUT_SECONDS": "10", "ABS_TIMEOUT_SECONDS": "10"}},
 		).
 		ExpectEveryStarted().
