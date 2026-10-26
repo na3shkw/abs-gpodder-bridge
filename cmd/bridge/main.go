@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	_ "time/tzdata" // OS にタイムゾーンのデータがなくても TZ を解釈できるようにする
 
 	"abs-gpodder-bridge/internal/bridge"
 )

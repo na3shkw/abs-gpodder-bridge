@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	_ "time/tzdata" // OS にタイムゾーンのデータがなくても TZ を解釈できるようにする
 
 	"github.com/robfig/cron/v3"
 )
@@ -78,6 +79,12 @@ func LoadConfig(getenv func(string) string) (*Config, error) {
 		return nil, fmt.Errorf("TZ: invalid time zone %q", tz)
 	}
 	return c, nil
+}
+
+// NextIndexTime は now より後で、索引を次に作る時刻を返す。cron 式は TZ の時刻で解釈する。
+// 該当する時刻がなければゼロ値を返す。
+func (c *Config) NextIndexTime(now time.Time) time.Time {
+	return c.IndexSchedule.Next(now.In(c.Location))
 }
 
 func parsePort(s string, def int) (int, error) {

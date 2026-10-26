@@ -7,8 +7,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/robfig/cron/v3"
 )
 
 // episodeRef は ABS エピソードを一意に識別する組。
@@ -97,17 +95,12 @@ func normalizeURL(s string) string {
 	return scheme + "://" + userinfo + authority + tail
 }
 
-// buildIndex は 6.3 節の手順で索引を作る。
+// buildIndex は 6.3 節の手順で ABS から情報を取得し、索引を作る。
 // 手順 1〜3 の失敗はエラーを返す。手順 4 だけの失敗は対応表のない索引と feedErr を返す。
 func buildIndex(ctx context.Context, abs *absClient) (ix *episodeIndex, feedErr error, err error) {
 	libs, err := abs.libraries(ctx)
 	if err != nil {
 		return nil, nil, err
-	}
-	ix = &episodeIndex{
-		byURL:    map[string][]episodeRef{},
-		byGUID:   map[string][]episodeRef{},
-		duration: map[episodeRef]float64{},
 	}
 	var ids []string
 	for _, lib := range libs {
@@ -123,6 +116,26 @@ func buildIndex(ctx context.Context, abs *absClient) (ix *episodeIndex, feedErr 
 	items, err := abs.itemsBatch(ctx, ids)
 	if err != nil {
 		return nil, nil, err
+	}
+	if abs.adminToken == "" {
+		return makeIndex(items, nil), nil, nil
+	}
+	feeds, err := abs.feeds(ctx)
+	if err != nil {
+		return makeIndex(items, nil), err, nil
+	}
+	if feeds == nil {
+		feeds = []absFeed{} // フィードが 0 件でも対応表はある
+	}
+	return makeIndex(items, feeds), nil, nil
+}
+
+// makeIndex は取得した情報から索引を組み立てる。feeds が nil なら対応表を作らない。
+func makeIndex(items []absItem, feeds []absFeed) *episodeIndex {
+	ix := &episodeIndex{
+		byURL:    map[string][]episodeRef{},
+		byGUID:   map[string][]episodeRef{},
+		duration: map[episodeRef]float64{},
 	}
 	byPath := map[string][]episodeRef{}
 	for _, item := range items {
@@ -145,12 +158,8 @@ func buildIndex(ctx context.Context, abs *absClient) (ix *episodeIndex, feedErr 
 			}
 		}
 	}
-	if abs.adminToken == "" {
-		return ix, nil, nil
-	}
-	feeds, err := abs.feeds(ctx)
-	if err != nil {
-		return ix, err, nil
+	if feeds == nil {
+		return ix
 	}
 	ix.byFeedID = map[string][]episodeRef{}
 	for _, f := range feeds {
@@ -163,7 +172,7 @@ func buildIndex(ctx context.Context, abs *absClient) (ix *episodeIndex, feedErr 
 			}
 		}
 	}
-	return ix, nil, nil
+	return ix
 }
 
 func appendUnique(refs []episodeRef, ref episodeRef) []episodeRef {
@@ -200,18 +209,18 @@ func (h *indexHolder) rebuild(ctx context.Context, abs *absClient, log *slog.Log
 	log.Info("episode index built", "episodes", len(ix.duration), "feedIds", len(ix.byFeedID))
 }
 
-// run は起動時に 1 回索引を作り、以後 sched の時刻（loc で解釈する）に作り直す。
-func (h *indexHolder) run(ctx context.Context, sched cron.Schedule, loc *time.Location, abs *absClient, log *slog.Logger) {
+// run は起動時に 1 回索引を作り、以後 next が返す時刻に作り直す。
+func (h *indexHolder) run(ctx context.Context, next func(time.Time) time.Time, abs *absClient, log *slog.Logger) {
 	h.rebuild(ctx, abs, log)
 	for {
-		next := sched.Next(time.Now().In(loc))
-		if next.IsZero() { // 該当する時刻がない
+		at := next(time.Now())
+		if at.IsZero() { // 該当する時刻がない
 			return
 		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(time.Until(next)):
+		case <-time.After(time.Until(at)):
 		}
 		h.rebuild(ctx, abs, log)
 	}

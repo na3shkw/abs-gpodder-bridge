@@ -40,7 +40,12 @@ func NewServer(cfg *Config, log *slog.Logger) *Server {
 
 // RunIndex は索引を起動時に作り、以後 ABS_INDEX_SCHEDULE の時刻に作り直す。ctx が終わるまで戻らない。
 func (s *Server) RunIndex(ctx context.Context) {
-	s.index.run(ctx, s.cfg.IndexSchedule, s.cfg.Location, s.abs, s.log)
+	s.index.run(ctx, s.cfg.NextIndexTime, s.abs, s.log)
+}
+
+// RebuildIndex は索引を 1 回作り直す（6.3 節）。失敗したら前の索引を使い続ける。
+func (s *Server) RebuildIndex(ctx context.Context) {
+	s.index.rebuild(ctx, s.abs, s.log)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
