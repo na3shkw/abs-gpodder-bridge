@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	"abs-gpodder-bridge/internal/bridge"
+	"github.com/na3shkw/abs-gpodder-bridge/internal/bridge"
 )
 
 func main() {

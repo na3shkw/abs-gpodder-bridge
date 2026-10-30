@@ -12,7 +12,7 @@ import (
 	"sync"
 	"testing"
 
-	"abs-gpodder-bridge/internal/bridge"
+	"github.com/na3shkw/abs-gpodder-bridge/internal/bridge"
 )
 
 // ---- 偽の ABS ----
