@@ -90,7 +90,7 @@ scripts/diagrams check     # 図が最新かを確かめる
 scripts/serve-diagrams     # 図の一覧を http://127.0.0.1:8766/diagrams/index.html で見る
 ```
 
-- 受け入れテスト（`acceptance/`）は、仕様書の要件ごとに「前提・操作・期待」の形で書いてあり、テスト 1 件につき 1 枚の図（`acceptance/diagrams/`）がある。
+- 受け入れテスト（`acceptance/`）は、仕様書の要件ごとに「前提・操作・期待」の形で書いてあり、テスト 1 件につき 1 枚の図（`acceptance/diagrams/`）がある。図の一覧は [GitHub Pages](https://na3shkw.github.io/abs-gpodder-bridge/) でも見られる。
 - 開発の約束事は [CLAUDE.md](CLAUDE.md) にまとめてある。
 
 ## ドキュメント

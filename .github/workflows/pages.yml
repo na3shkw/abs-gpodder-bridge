@@ -1,0 +1,57 @@
+name: Pages
+
+# 受け入れテストの図（acceptance/diagrams/）を GitHub Pages で公開する。
+on:
+  push:
+    branches: [main]
+    paths:
+      - "acceptance/diagrams/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      # 一覧ページのソースへの相対リンク（../xxx_test.go#L<行>）を、
+      # このコミットの GitHub のソースの画面へのリンクに書き換える
+      - name: Prepare site
+        run: |
+          mkdir _site
+          cp -r acceptance/diagrams/. _site/
+          sed -i "s#href=\"\.\./#href=\"${SOURCE_BASE}/#g" _site/index.html
+        env:
+          SOURCE_BASE: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/acceptance
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
