@@ -70,28 +70,28 @@ details.sec { scroll-margin-top: 56px; }
 </ul></nav>
 <details class="sec" id="g-CFG" data-key="CFG" open><summary><h2>起動・設定</h2><span class="count"></span></summary>
 <article class="card" id="CFG-01">
-<header><label><input type="checkbox" data-id="CFG-01"> <span class="id">CFG-01</span></label><span class="title">必須の環境変数がなければ、終了コード 1 で起動をやめる</span></header>
+<header><label><input type="checkbox" data-id="CFG-01"> <span class="id">CFG-01</span></label><span class="title">必須の環境変数がない、または値が空なら、終了コード 1 で起動をやめる</span></header>
 <p class="src"><a href="../config_test.go#L10">config_test.go:10</a> <code>TestConfig_ExitsWhenRequiredEnvMissing</code></p>
 <img src="CFG-01.svg" alt="CFG-01 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-02">
 <header><label><input type="checkbox" data-id="CFG-02"> <span class="id">CFG-02</span></label><span class="title">環境変数の値が不正なら（任意の変数でも）、終了コード 1 で起動をやめる</span></header>
-<p class="src"><a href="../config_test.go#L22">config_test.go:22</a> <code>TestConfig_ExitsOnInvalidValue</code></p>
+<p class="src"><a href="../config_test.go#L23">config_test.go:23</a> <code>TestConfig_ExitsOnInvalidValue</code></p>
 <img src="CFG-02.svg" alt="CFG-02 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-03">
 <header><label><input type="checkbox" data-id="CFG-03"> <span class="id">CFG-03</span></label><span class="title">URL の末尾の / の有無にかかわらず、同じ先へ送る</span></header>
-<p class="src"><a href="../config_test.go#L40">config_test.go:40</a> <code>TestConfig_AcceptsTrailingSlashInURLs</code></p>
+<p class="src"><a href="../config_test.go#L46">config_test.go:46</a> <code>TestConfig_AcceptsTrailingSlashInURLs</code></p>
 <img src="CFG-03.svg" alt="CFG-03 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-04">
 <header><label><input type="checkbox" data-id="CFG-04"> <span class="id">CFG-04</span></label><span class="title">LISTEN_PORT を指定しなければ、既定の 8080 で待ち受ける</span></header>
-<p class="src"><a href="../config_test.go#L50">config_test.go:50</a> <code>TestConfig_ListensOnDefaultPort</code></p>
+<p class="src"><a href="../config_test.go#L56">config_test.go:56</a> <code>TestConfig_ListensOnDefaultPort</code></p>
 <img src="CFG-04.svg" alt="CFG-04 の図" loading="lazy">
 </article>
 <article class="card" id="CFG-05">
-<header><label><input type="checkbox" data-id="CFG-05"> <span class="id">CFG-05</span></label><span class="title">正しい値の環境変数なら起動する</span></header>
-<p class="src"><a href="../config_test.go#L59">config_test.go:59</a> <code>TestConfig_StartsWithValidValues</code></p>
+<header><label><input type="checkbox" data-id="CFG-05"> <span class="id">CFG-05</span></label><span class="title">正しい値の環境変数なら（任意の変数は値が空でも）起動する</span></header>
+<p class="src"><a href="../config_test.go#L65">config_test.go:65</a> <code>TestConfig_StartsWithValidValues</code></p>
 <img src="CFG-05.svg" alt="CFG-05 の図" loading="lazy">
 </article>
 </details>
@@ -176,58 +176,58 @@ details.sec { scroll-margin-top: 56px; }
 <img src="PST-05.svg" alt="PST-05 の図" loading="lazy">
 </article>
 <article class="card" id="PST-06">
-<header><label><input type="checkbox" data-id="PST-06"> <span class="id">PST-06</span></label><span class="title">play 以外・位置が負や数値でない・時刻が読めない記録は無視し、ほかは反映する</span></header>
+<header><label><input type="checkbox" data-id="PST-06"> <span class="id">PST-06</span></label><span class="title">play 以外・位置が負や数値でない（文字列の数値も）・時刻が読めない記録は無視し、ほかは反映する</span></header>
 <p class="src"><a href="../post_test.go#L64">post_test.go:64</a> <code>TestPOST_IgnoresInvalidActions</code></p>
 <img src="PST-06.svg" alt="PST-06 の図" loading="lazy">
 </article>
 <article class="card" id="PST-07">
 <header><label><input type="checkbox" data-id="PST-07"> <span class="id">PST-07</span></label><span class="title">本文が JSON でない・配列でなければ、ABS へは何も送らない</span></header>
-<p class="src"><a href="../post_test.go#L81">post_test.go:81</a> <code>TestPOST_SkipsABSWhenBodyIsNotArray</code></p>
+<p class="src"><a href="../post_test.go#L82">post_test.go:82</a> <code>TestPOST_SkipsABSWhenBodyIsNotArray</code></p>
 <img src="PST-07.svg" alt="PST-07 の図" loading="lazy">
 </article>
 <article class="card" id="PST-08">
 <header><label><input type="checkbox" data-id="PST-08"> <span class="id">PST-08</span></label><span class="title">照合できない記録は無視し、照合できた記録は反映する</span></header>
-<p class="src"><a href="../post_test.go#L92">post_test.go:92</a> <code>TestPOST_IgnoresUnmatchedActions</code></p>
+<p class="src"><a href="../post_test.go#L93">post_test.go:93</a> <code>TestPOST_IgnoresUnmatchedActions</code></p>
 <img src="PST-08.svg" alt="PST-08 の図" loading="lazy">
 </article>
 <article class="card" id="PST-09">
 <header><label><input type="checkbox" data-id="PST-09"> <span class="id">PST-09</span></label><span class="title">同じエピソードの記録が複数あれば時刻が新しい方を、同じ時刻なら配列の後ろを反映する</span></header>
-<p class="src"><a href="../post_test.go#L106">post_test.go:106</a> <code>TestPOST_KeepsNewestActionPerEpisode</code></p>
+<p class="src"><a href="../post_test.go#L107">post_test.go:107</a> <code>TestPOST_KeepsNewestActionPerEpisode</code></p>
 <img src="PST-09.svg" alt="PST-09 の図" loading="lazy">
 </article>
 <article class="card" id="PST-10">
 <header><label><input type="checkbox" data-id="PST-10"> <span class="id">PST-10</span></label><span class="title">ABS の進捗を取得できなければ反映しない（応答は goPodder のまま）</span></header>
-<p class="src"><a href="../post_test.go#L123">post_test.go:123</a> <code>TestPOST_SkipsWhenProgressFetchFails</code></p>
+<p class="src"><a href="../post_test.go#L124">post_test.go:124</a> <code>TestPOST_SkipsWhenProgressFetchFails</code></p>
 <img src="PST-10.svg" alt="PST-10 の図" loading="lazy">
 </article>
 <article class="card" id="PST-11">
 <header><label><input type="checkbox" data-id="PST-11"> <span class="id">PST-11</span></label><span class="title">1 件の PATCH が失敗してもほかは反映し、失敗した分は再送しない</span></header>
-<p class="src"><a href="../post_test.go#L136">post_test.go:136</a> <code>TestPOST_ContinuesAfterOnePATCHFails</code></p>
+<p class="src"><a href="../post_test.go#L137">post_test.go:137</a> <code>TestPOST_ContinuesAfterOnePATCHFails</code></p>
 <img src="PST-11.svg" alt="PST-11 の図" loading="lazy">
 </article>
 <article class="card" id="PST-12">
 <header><label><input type="checkbox" data-id="PST-12"> <span class="id">PST-12</span></label><span class="title">ABS が ABS_TIMEOUT_SECONDS 以内に応答しなくても、goPodder の応答を返す</span></header>
-<p class="src"><a href="../post_test.go#L152">post_test.go:152</a> <code>TestPOST_RespondsWhenABSTimesOut</code></p>
+<p class="src"><a href="../post_test.go#L153">post_test.go:153</a> <code>TestPOST_RespondsWhenABSTimesOut</code></p>
 <img src="PST-12.svg" alt="PST-12 の図" loading="lazy">
 </article>
 <article class="card" id="PST-13">
 <header><label><input type="checkbox" data-id="PST-13"> <span class="id">PST-13</span></label><span class="title">ABS への反映を終えてから、クライアントへ応答する</span></header>
-<p class="src"><a href="../post_test.go#L166">post_test.go:166</a> <code>TestPOST_FinishesABSUpdateBeforeResponding</code></p>
+<p class="src"><a href="../post_test.go#L167">post_test.go:167</a> <code>TestPOST_FinishesABSUpdateBeforeResponding</code></p>
 <img src="PST-13.svg" alt="PST-13 の図" loading="lazy">
 </article>
 <article class="card" id="PST-14">
 <header><label><input type="checkbox" data-id="PST-14"> <span class="id">PST-14</span></label><span class="title">時刻のない記録は、受け取った時刻（今）の記録とみなす</span></header>
-<p class="src"><a href="../post_test.go#L178">post_test.go:178</a> <code>TestPOST_TreatsMissingTimestampAsReceiptTime</code></p>
+<p class="src"><a href="../post_test.go#L179">post_test.go:179</a> <code>TestPOST_TreatsMissingTimestampAsReceiptTime</code></p>
 <img src="PST-14.svg" alt="PST-14 の図" loading="lazy">
 </article>
 <article class="card" id="PST-15">
 <header><label><input type="checkbox" data-id="PST-15"> <span class="id">PST-15</span></label><span class="title">ABS へのリクエストには ABS_TOKEN を使う（/api/feeds だけ管理者のトークン）</span></header>
-<p class="src"><a href="../post_test.go#L189">post_test.go:189</a> <code>TestPOST_UsesUserTokenForABS</code></p>
+<p class="src"><a href="../post_test.go#L190">post_test.go:190</a> <code>TestPOST_UsesUserTokenForABS</code></p>
 <img src="PST-15.svg" alt="PST-15 の図" loading="lazy">
 </article>
 <article class="card" id="PST-16">
 <header><label><input type="checkbox" data-id="PST-16"> <span class="id">PST-16</span></label><span class="title">パスのユーザー名にかかわらず、ABS_TOKEN のユーザーの進捗に反映する</span></header>
-<p class="src"><a href="../post_test.go#L201">post_test.go:201</a> <code>TestPOST_IgnoresUserNameInPath</code></p>
+<p class="src"><a href="../post_test.go#L202">post_test.go:202</a> <code>TestPOST_IgnoresUserNameInPath</code></p>
 <img src="PST-16.svg" alt="PST-16 の図" loading="lazy">
 </article>
 </details>
@@ -338,13 +338,13 @@ details.sec { scroll-margin-top: 56px; }
 <img src="GET-21.svg" alt="GET-21 の図" loading="lazy">
 </article>
 <article class="card" id="GET-22">
-<header><label><input type="checkbox" data-id="GET-22"> <span class="id">GET-22</span></label><span class="title">位置が負・数値でない play の記録は、突き合わせに使わない（ep3 は対照）</span></header>
+<header><label><input type="checkbox" data-id="GET-22"> <span class="id">GET-22</span></label><span class="title">位置が負・数値でない（文字列の数値も）play の記録は、突き合わせに使わない（ep3 は対照）</span></header>
 <p class="src"><a href="../get_test.go#L312">get_test.go:312</a> <code>TestGET_IgnoresPlayRecordsWithInvalidPosition</code></p>
 <img src="GET-22.svg" alt="GET-22 の図" loading="lazy">
 </article>
 <article class="card" id="GET-23">
 <header><label><input type="checkbox" data-id="GET-23"> <span class="id">GET-23</span></label><span class="title">goPodder に記録がないエピソードは、ABS に進捗があっても書き戻さない（ep2 は対照）</span></header>
-<p class="src"><a href="../get_test.go#L334">get_test.go:334</a> <code>TestGET_IgnoresEpisodesUnknownToGoPodder</code></p>
+<p class="src"><a href="../get_test.go#L336">get_test.go:336</a> <code>TestGET_IgnoresEpisodesUnknownToGoPodder</code></p>
 <img src="GET-23.svg" alt="GET-23 の図" loading="lazy">
 </article>
 </details>

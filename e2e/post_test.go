@@ -62,17 +62,18 @@ func TestPOST_SkipsABSWhenGoPodderFails(t *testing.T) {
 
 // 図: diagrams/PST-06.svg
 func TestPOST_IgnoresInvalidActions(t *testing.T) {
-	ep1, ep2, ep3, ep4, ep5 := NewEpisode("ep1"), NewEpisode("ep2"), NewEpisode("ep3"), NewEpisode("ep4"), NewEpisode("ep5")
-	New(t, "PST-06", "play 以外・位置が負や数値でない・時刻が読めない記録は無視し、ほかは反映する").
-		ABSEpisode(ep1, ep2, ep3, ep4, ep5).
+	ep1, ep2, ep3, ep4, ep5, ep6 := NewEpisode("ep1"), NewEpisode("ep2"), NewEpisode("ep3"), NewEpisode("ep4"), NewEpisode("ep5"), NewEpisode("ep6")
+	New(t, "PST-06", "play 以外・位置が負や数値でない（文字列の数値も）・時刻が読めない記録は無視し、ほかは反映する").
+		ABSEpisode(ep1, ep2, ep3, ep4, ep5, ep6).
 		ClientPOST(
 			Of(ep1, "download").At(T(1)),
 			Play(ep2).Pos(-5).At(T(1)),
 			Play(ep3).Raw("position", "abc").At(T(1)),
 			Play(ep4).Pos(100).Raw("timestamp", "yesterday"),
 			Play(ep5).Pos(100).At(T(1)),
+			Play(ep6).Raw("position", "120").At(T(1)),
 		).
-		ExpectNoPATCHFor(ep1, ep2, ep3, ep4).
+		ExpectNoPATCHFor(ep1, ep2, ep3, ep4, ep6).
 		ExpectPATCH(ep5, B("currentTime", 100)).
 		Run()
 }

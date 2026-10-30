@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 522" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic UI',system-ui,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 556" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic UI',system-ui,sans-serif">
 <style>
 svg { --bg:#ffffff; --fg:#22252a; --muted:#5f6670; --line:#d9d6cf; --accent:#2f6fbd; --ok:#3f8a52; --ng:#c0606e;
   --client:#eef3fb; --client-s:#6b8fc7; --bridge:#eef7ef; --bridge-s:#5d9b68; --gp:#fbf1e6; --gp-s:#c58a45; --abs:#f3eefa; --abs-s:#8a6cc0; }
@@ -32,43 +32,45 @@ text { fill: var(--fg); font-size: 13px; paint-order: stroke; stroke: var(--bg);
 <marker id="mn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ng)"/></marker>
 </defs>
 <rect class="bg" width="100%" height="100%"/>
-<line class="life" x1="100" y1="60" x2="100" y2="516"/>
+<line class="life" x1="100" y1="60" x2="100" y2="550"/>
 <rect class="head client" x="25" y="20" width="150" height="40" rx="8"/>
 <text class="headtext" x="100" y="45" text-anchor="middle">クライアント</text>
-<line class="life" x1="330" y1="60" x2="330" y2="516"/>
+<line class="life" x1="330" y1="60" x2="330" y2="550"/>
 <rect class="head bridge" x="255" y="20" width="150" height="40" rx="8"/>
 <text class="headtext" x="330" y="45" text-anchor="middle">ブリッジ</text>
-<line class="life" x1="560" y1="60" x2="560" y2="516"/>
+<line class="life" x1="560" y1="60" x2="560" y2="550"/>
 <rect class="head gp" x="485" y="20" width="150" height="40" rx="8"/>
 <text class="headtext" x="560" y="45" text-anchor="middle">goPodder</text>
-<line class="life" x1="790" y1="60" x2="790" y2="516"/>
+<line class="life" x1="790" y1="60" x2="790" y2="550"/>
 <rect class="head abs" x="715" y="20" width="150" height="40" rx="8"/>
 <text class="headtext" x="790" y="45" text-anchor="middle">ABS</text>
 <line class="sep" x1="8" y1="76" x2="892" y2="76"/>
 <text class="band" x="10" y="90">Arrange</text>
-<rect class="note abs" x="682" y="100" width="210" height="116" rx="6"/>
+<rect class="note abs" x="682" y="100" width="210" height="133" rx="6"/>
 <text class="mono" x="692" y="120">ep1: ep1.mp3 / guid-ep1</text>
 <text class="mono" x="692" y="137">ep2: ep2.mp3 / guid-ep2</text>
 <text class="mono" x="692" y="154">ep3: ep3.mp3 / guid-ep3</text>
 <text class="mono" x="692" y="171">ep4: ep4.mp3 / guid-ep4</text>
 <text class="mono" x="692" y="188">ep5: ep5.mp3 / guid-ep5</text>
-<text class="mono" x="692" y="205">進捗なし</text>
-<rect class="note gp" x="455" y="100" width="210" height="116" rx="6"/>
+<text class="mono" x="692" y="205">ep6: ep6.mp3 / guid-ep6</text>
+<text class="mono" x="692" y="222">進捗なし</text>
+<rect class="note gp" x="455" y="100" width="210" height="133" rx="6"/>
 <text class="mono" x="465" y="120">記録なし</text>
-<line class="sep" x1="8" y1="232" x2="892" y2="232"/>
-<text class="band" x="10" y="246">Act</text>
-<text class="label" x="215" y="268" text-anchor="middle">POST /api/2/episodes/alice.json</text>
-<line class="arrow" x1="100" y1="274" x2="330" y2="274" marker-end="url(#m)"/>
-<text class="mono detail" x="215" y="290" text-anchor="middle">ep1 download 09:01</text>
-<text class="mono detail" x="215" y="307" text-anchor="middle">ep2 play -5 09:01</text>
-<text class="mono detail" x="215" y="324" text-anchor="middle">ep3 play 09:01 position=&#34;abc&#34;</text>
-<text class="mono detail" x="215" y="341" text-anchor="middle">ep4 play 100 timestamp=&#34;yesterday&#34;</text>
-<text class="mono detail" x="215" y="358" text-anchor="middle">ep5 play 100 09:01</text>
-<line class="sep" x1="8" y1="395" x2="892" y2="395"/>
-<text class="band" x="10" y="409">Assert</text>
-<text class="label" x="560" y="431" text-anchor="middle">✗ PATCH ep1・ep2・ep3・ep4 は送られない</text>
-<line class="arrow negated" x1="330" y1="437" x2="790" y2="437" marker-end="url(#mn)"/>
-<text class="label" x="560" y="469" text-anchor="middle">✓ PATCH ep5（1 回）</text>
-<line class="arrow expect" x1="330" y1="475" x2="790" y2="475" marker-end="url(#me)"/>
-<text class="mono detail" x="560" y="491" text-anchor="middle">{currentTime: 100}</text>
+<line class="sep" x1="8" y1="249" x2="892" y2="249"/>
+<text class="band" x="10" y="263">Act</text>
+<text class="label" x="215" y="285" text-anchor="middle">POST /api/2/episodes/alice.json</text>
+<line class="arrow" x1="100" y1="291" x2="330" y2="291" marker-end="url(#m)"/>
+<text class="mono detail" x="215" y="307" text-anchor="middle">ep1 download 09:01</text>
+<text class="mono detail" x="215" y="324" text-anchor="middle">ep2 play -5 09:01</text>
+<text class="mono detail" x="215" y="341" text-anchor="middle">ep3 play 09:01 position=&#34;abc&#34;</text>
+<text class="mono detail" x="215" y="358" text-anchor="middle">ep4 play 100 timestamp=&#34;yesterday&#34;</text>
+<text class="mono detail" x="215" y="375" text-anchor="middle">ep5 play 100 09:01</text>
+<text class="mono detail" x="215" y="392" text-anchor="middle">ep6 play 09:01 position=&#34;120&#34;</text>
+<line class="sep" x1="8" y1="429" x2="892" y2="429"/>
+<text class="band" x="10" y="443">Assert</text>
+<text class="label" x="560" y="465" text-anchor="middle">✗ PATCH ep1・ep2・ep3・ep4・ep6 は送られない</text>
+<line class="arrow negated" x1="330" y1="471" x2="790" y2="471" marker-end="url(#mn)"/>
+<text class="label" x="560" y="503" text-anchor="middle">✓ PATCH ep5（1 回）</text>
+<line class="arrow expect" x1="330" y1="509" x2="790" y2="509" marker-end="url(#me)"/>
+<text class="mono detail" x="560" y="525" text-anchor="middle">{currentTime: 100}</text>
 </svg>

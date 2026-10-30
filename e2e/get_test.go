@@ -310,21 +310,23 @@ func TestGET_UsesNewestPlayAmongDuplicates(t *testing.T) {
 
 // 図: diagrams/GET-22.svg
 func TestGET_IgnoresPlayRecordsWithInvalidPosition(t *testing.T) {
-	ep1, ep2, ep3 := NewEpisode("ep1"), NewEpisode("ep2"), NewEpisode("ep3")
-	New(t, "GET-22", "位置が負・数値でない play の記録は、突き合わせに使わない（ep3 は対照）").
-		ABSEpisode(ep1, ep2, ep3).
+	ep1, ep2, ep3, ep4 := NewEpisode("ep1"), NewEpisode("ep2"), NewEpisode("ep3"), NewEpisode("ep4")
+	New(t, "GET-22", "位置が負・数値でない（文字列の数値も）play の記録は、突き合わせに使わない（ep3 は対照）").
+		ABSEpisode(ep1, ep2, ep3, ep4).
 		ABSProgress(
 			Progress{Ep: ep1, CurrentTime: 100, Duration: 600, LastUpdate: T(1)},
 			Progress{Ep: ep2, CurrentTime: 100, Duration: 600, LastUpdate: T(1)},
 			Progress{Ep: ep3, CurrentTime: 100, Duration: 600, LastUpdate: T(1)},
+			Progress{Ep: ep4, CurrentTime: 100, Duration: 600, LastUpdate: T(1)},
 		).
 		GoPodderRecord(
 			Play(ep1).Pos(-5).At(T(5)),
 			Play(ep2).Raw("position", "abc").At(T(5)),
 			Play(ep3).Pos(400).Total(600).At(T(5)),
+			Play(ep4).Raw("position", "400").Total(600).At(T(5)),
 		).
 		ClientGET().
-		ExpectNoPATCHFor(ep1, ep2).
+		ExpectNoPATCHFor(ep1, ep2, ep4).
 		ExpectPATCH(ep3, B("currentTime", 400, "duration", 600)).
 		ExpectNoGoPodderWrite().
 		Run()
