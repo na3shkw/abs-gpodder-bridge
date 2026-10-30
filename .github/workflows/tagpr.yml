@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tagpr:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    outputs:
+      tag: ${{ steps.tagpr.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run tagpr
+        id: tagpr
+        uses: Songmu/tagpr@v1.21.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    needs: tagpr
+    if: needs.tagpr.outputs.tag != ''
+    # 再利用ワークフローは actions.lock の対象外なので、コミットの SHA で固定する
+    uses: docker/github-builder/.github/workflows/build.yml@cbc9d42f8c89a55623392aadd03600965b80e963 # v1.18.1
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    with:
+      output: image
+      push: true
+      platforms: linux/amd64
+      cache: true
+      cache-mode: max
+      sbom: true
+      set-meta-labels: true
+      meta-images: ghcr.io/${{ github.repository }}
+      meta-tags: |
+        type=semver,pattern={{version}},value=${{ needs.tagpr.outputs.tag }}
+        type=semver,pattern={{major}}.{{minor}},value=${{ needs.tagpr.outputs.tag }}
+        type=semver,pattern={{major}},value=${{ needs.tagpr.outputs.tag }}
+        type=raw,value=latest,enable={{is_default_branch}}
+    secrets:
+      registry-auths: |
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    needs: [tagpr, docker]
+    if: needs.tagpr.outputs.tag != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Publish release
+        run: gh release edit "$TAG_NAME" --draft=false --latest
+        env:
+          TAG_NAME: ${{ needs.tagpr.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
