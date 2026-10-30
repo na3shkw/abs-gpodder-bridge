@@ -23,9 +23,36 @@ AntennaPod ──HTTP──▶ ブリッジ ──HTTP──▶ goPodder（内�
 
 - ABS v2.36.0 以上（`GET /api/me/progress` を使う）
 - goPodder v1.4.0 以上
-- ビルドする場合は Go 1.25
+- Docker（Docker を使わない場合は Go 1.25）
+
+> [!WARNING]
+> ブリッジが扱えるユーザーは 1 人だけ。goPodder のユーザー名にかかわらず、すべての同期を `ABS_TOKEN` の 1 人の ABS ユーザーとして扱う。複数の人で goPodder を共有していると、全員の再生位置が同じ ABS ユーザーに書き込まれる。
 
 ## 動かし方
+
+ブリッジと goPodder を、このリポジトリの [`compose.yaml`](compose.yaml) で並べて動かす。goPodder のポートは外へ公開せず、ブリッジだけを公開する。ブリッジのイメージは `ghcr.io/na3shkw/abs-gpodder-bridge` で公開している。
+
+1. [`.env.example`](.env.example) を `.env` にコピーし、ABS の URL とトークンを書く。ブリッジの設定は `GOPODDER_URL`（`compose.yaml` で決めている）を除いてすべてこのファイルに書く。任意の設定（索引を作る時刻、タイムゾーン、イメージのタグなど）も同じファイルに書ける。
+
+   ```sh
+   cp .env.example .env
+   ```
+
+2. 起動する。
+
+   ```sh
+   docker compose up -d
+   ```
+
+3. ブラウザでブリッジ（`http://<ホスト>:8080/`）を開き、goPodder の初期設定をする。ブリッジはすべてのリクエストを goPodder へ中継するので、goPodder の Web 画面もブリッジ経由で使える。
+   1. 最初に開くと、goPodder の管理者アカウントを作る画面になる。
+   2. 管理者でログインし、同期用のログイン（AntennaPod が使うユーザー名とパスワード）を作る。
+
+4. AntennaPod の同期の設定で「gpodder.net」を選び、サーバーにブリッジ（`http://<ホスト>:8080`）、ユーザー名とパスワードに 3 で作った同期用のログインを指定する。
+
+公開するポートなど、`.env` で変えられないものを変えたいときは、`compose.yaml` は直さずに、同じフォルダに `compose.override.yaml` を置いて上書きする。
+
+### Docker を使わない場合
 
 ```sh
 go build -o bridge ./cmd/bridge
@@ -35,8 +62,6 @@ ABS_URL=http://abs:80 \
 ABS_TOKEN=<ABS の一般ユーザーの API トークン> \
 ./bridge
 ```
-
-AntennaPod の同期の設定では、goPodder ではなくブリッジ（既定は 8080 番ポート）を同期サーバーとして指定する。goPodder のポートは外へ公開しない。
 
 ### 主な設定
 
@@ -57,6 +82,7 @@ AntennaPod の同期の設定では、goPodder ではなくブリッジ（既定
 ## 開発
 
 ```sh
+docker build -t ghcr.io/na3shkw/abs-gpodder-bridge:dev .   # 手元でイメージを作る（.env で BRIDGE_IMAGE_TAG=dev にすると compose で使える）
 go test ./...              # 自分で書くテスト（関数単位・プロセス内の HTTP）
 scripts/acceptance         # 受け入れテスト（ブリッジをビルドして起動し、偽の ABS・goPodder を相手に仕様どおりか確かめる）
 scripts/diagrams           # 受け入れテストの記述から図を作り直す

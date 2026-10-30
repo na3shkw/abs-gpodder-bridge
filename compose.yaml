@@ -1,0 +1,21 @@
+services:
+  bridge:
+    image: ghcr.io/na3shkw/abs-gpodder-bridge:${BRIDGE_IMAGE_TAG:-latest}
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      GOPODDER_URL: http://gopodder:8080
+    depends_on:
+      - gopodder
+    restart: unless-stopped
+
+  gopodder:
+    image: ghcr.io/cbrgm/gopodder:${GOPODDER_IMAGE_TAG:-v1.4.1}
+    command: serve --db-path /data/gopodder.db
+    volumes:
+      - gopodder-data:/data
+    restart: unless-stopped
+
+volumes:
+  gopodder-data:

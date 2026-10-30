@@ -1,0 +1,7 @@
+# イメージのビルドに使うのは go.mod・go.sum・cmd/・internal/ だけ
+*
+!go.mod
+!go.sum
+!cmd/
+!internal/
+internal/**/*_test.go
