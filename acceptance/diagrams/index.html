@@ -55,7 +55,7 @@ details.sec { scroll-margin-top: 56px; }
 <main>
 <h1>受け入れテストシナリオ図解</h1>
 <div class="bar"><span>チェック <span class="total"></span></span><button type="button" data-act="open">すべて開く</button><button type="button" data-act="close">すべて閉じる</button><button type="button" data-act="reset">チェックをすべて外す</button></div>
-<p class="lead">テスト 1 件につき 1 枚の図。全 98 件。図はテストの記述（DSL）から生成している。</p>
+<p class="lead">テスト 1 件につき 1 枚の図。全 102 件。図はテストの記述（DSL）から生成している。</p>
 <div class="legend"><span><b class="ok">✓</b> 起きるべきこと</span><span><b class="ng">✗</b> 起きてはならないこと</span><span>時刻は 09:00 起点の例、位置・長さは秒</span></div>
 <nav class="side" aria-label="グループ"><ul>
 <li><a href="#g-CFG">起動・設定</a></li>
@@ -148,6 +148,11 @@ details.sec { scroll-margin-top: 56px; }
 <p class="src"><a href="../proxy_test.go#L107">proxy_test.go:107</a> <code>TestProxy_Returns502WhenGoPodderTimesOut</code></p>
 <img src="PRX-07.svg" alt="PRX-07 の図" loading="lazy">
 </article>
+<article class="card" id="PRX-08">
+<header><label><input type="checkbox" data-id="PRX-08"> <span class="id">PRX-08</span></label><span class="title">リクエストヘッダーを 10 秒以内に送り終えなければ、中継せずに接続を切る</span></header>
+<p class="src"><a href="../proxy_test.go#L118">proxy_test.go:118</a> <code>TestProxy_ClosesConnectionWhenHeaderIsNotFinished</code></p>
+<img src="PRX-08.svg" alt="PRX-08 の図" loading="lazy">
+</article>
 </details>
 <details class="sec" id="g-PST" data-key="PST" open><summary><h2>POST（記録の受信）</h2><span class="count"></span></summary>
 <article class="card" id="PST-01">
@@ -229,6 +234,21 @@ details.sec { scroll-margin-top: 56px; }
 <header><label><input type="checkbox" data-id="PST-16"> <span class="id">PST-16</span></label><span class="title">パスのユーザー名にかかわらず、ABS_TOKEN のユーザーの進捗に反映する</span></header>
 <p class="src"><a href="../post_test.go#L202">post_test.go:202</a> <code>TestPOST_IgnoresUserNameInPath</code></p>
 <img src="PST-16.svg" alt="PST-16 の図" loading="lazy">
+</article>
+<article class="card" id="PST-17">
+<header><label><input type="checkbox" data-id="PST-17"> <span class="id">PST-17</span></label><span class="title">本文がちょうど 10 MiB なら、中継して ABS へ反映する</span></header>
+<p class="src"><a href="../post_test.go#L212">post_test.go:212</a> <code>TestPOST_AcceptsBodyOfExactlyTheLimit</code></p>
+<img src="PST-17.svg" alt="PST-17 の図" loading="lazy">
+</article>
+<article class="card" id="PST-18">
+<header><label><input type="checkbox" data-id="PST-18"> <span class="id">PST-18</span></label><span class="title">本文が 10 MiB を超えたら 413 を返し、goPodder へも ABS へも送らない</span></header>
+<p class="src"><a href="../post_test.go#L223">post_test.go:223</a> <code>TestPOST_Returns413WhenBodyExceedsLimit</code></p>
+<img src="PST-18.svg" alt="PST-18 の図" loading="lazy">
+</article>
+<article class="card" id="PST-19">
+<header><label><input type="checkbox" data-id="PST-19"> <span class="id">PST-19</span></label><span class="title">Content-Length のない本文でも、10 MiB を超えたら 413 を返し、goPodder へも ABS へも送らない</span></header>
+<p class="src"><a href="../post_test.go#L235">post_test.go:235</a> <code>TestPOST_Returns413WhenChunkedBodyExceedsLimit</code></p>
+<img src="PST-19.svg" alt="PST-19 の図" loading="lazy">
 </article>
 </details>
 <details class="sec" id="g-GET" data-key="GET" open><summary><h2>GET（同期の突き合わせ）</h2><span class="count"></span></summary>

@@ -87,6 +87,7 @@ type clientResult struct {
 	respBody            []byte
 	err                 error
 	start, end          time.Time
+	closed              bool // ClientStallsHeader で、ブリッジが接続を切ったら true
 }
 
 type startResult struct {

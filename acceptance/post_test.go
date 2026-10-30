@@ -207,3 +207,38 @@ func TestPOST_IgnoresUserNameInPath(t *testing.T) {
 		ExpectPATCH(ep1, B("currentTime", 120, "duration", 600)).
 		Run()
 }
+
+// 図: diagrams/PST-17.svg
+func TestPOST_AcceptsBodyOfExactlyTheLimit(t *testing.T) {
+	ep1 := NewEpisode("ep1")
+	New(t, "PST-17", "本文がちょうど 10 MiB なら、中継して ABS へ反映する").
+		ABSEpisode(ep1).
+		ClientPOSTPadded(10<<20, Play(ep1).Pos(120).At(T(1))).
+		ExpectPATCH(ep1, B("currentTime", 120)).
+		ExpectResponseFromGoPodder().
+		Run()
+}
+
+// 図: diagrams/PST-18.svg
+func TestPOST_Returns413WhenBodyExceedsLimit(t *testing.T) {
+	ep1 := NewEpisode("ep1")
+	New(t, "PST-18", "本文が 10 MiB を超えたら 413 を返し、goPodder へも ABS へも送らない").
+		ABSEpisode(ep1).
+		ClientPOSTPadded(10<<20+1, Play(ep1).Pos(120).At(T(1))).
+		ExpectStatus(413).
+		ExpectGoPodderNotReceived("/api/2/episodes/alice.json").
+		ExpectNoABSRequests().
+		Run()
+}
+
+// 図: diagrams/PST-19.svg
+func TestPOST_Returns413WhenChunkedBodyExceedsLimit(t *testing.T) {
+	ep1 := NewEpisode("ep1")
+	New(t, "PST-19", "Content-Length のない本文でも、10 MiB を超えたら 413 を返し、goPodder へも ABS へも送らない").
+		ABSEpisode(ep1).
+		ClientPOSTPaddedChunked(10<<20+1, Play(ep1).Pos(120).At(T(1))).
+		ExpectStatus(413).
+		ExpectGoPodderNotReceived("/api/2/episodes/alice.json").
+		ExpectNoABSRequests().
+		Run()
+}

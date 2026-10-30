@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/na3shkw/abs-gpodder-bridge/internal/bridge"
 )
@@ -37,8 +38,10 @@ func main() {
 	srv := bridge.NewServer(cfg, log)
 	go srv.RunIndex(context.Background())
 
+	// リクエストヘッダーを 10 秒以内に読み終えられない接続は切る（4 章）。
+	httpSrv := &http.Server{Handler: srv, ReadHeaderTimeout: 10 * time.Second}
 	log.Info("listening", "port", cfg.ListenPort)
-	if err := http.Serve(ln, srv); err != nil {
+	if err := httpSrv.Serve(ln); err != nil {
 		log.Error("server stopped", "error", err)
 		os.Exit(1)
 	}

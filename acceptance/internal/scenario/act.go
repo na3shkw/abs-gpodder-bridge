@@ -3,10 +3,13 @@ package scenario
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/harness"
@@ -37,6 +40,82 @@ func (s *S) ClientPOSTRaw(body string) *S {
 	p := "/api/2/episodes/" + clientUser + ".json"
 	s.d.when = append(s.d.when, message{from: Client, to: Bridge, label: "POST " + p, detail: []string{"本文: " + body}})
 	s.whens = append(s.whens, func(c *runCtx) { s.send(c, http.MethodPost, p, "", nil, []byte(body)) })
+	return s
+}
+
+// ClientPOSTPadded は、アクションの配列の後ろに空白を足して、本文をちょうど size バイトにして送る。
+func (s *S) ClientPOSTPadded(size int, actions ...Action) *S {
+	return s.clientPOSTPadded(size, false, actions)
+}
+
+// ClientPOSTPaddedChunked は ClientPOSTPadded と同じ本文を、Content-Length を付けずに（chunked で）送る。
+func (s *S) ClientPOSTPaddedChunked(size int, actions ...Action) *S {
+	return s.clientPOSTPadded(size, true, actions)
+}
+
+func (s *S) clientPOSTPadded(size int, chunked bool, actions []Action) *S {
+	var detail []string
+	payload := []map[string]any{}
+	for _, a := range actions {
+		detail = append(detail, a.label())
+		payload = append(payload, a.JSON())
+	}
+	detail = append(detail, "本文 "+sizeLabel(size)+"（空白で埋める）")
+	if chunked {
+		detail = append(detail, "Content-Length なし（chunked）")
+	}
+	p := "/api/2/episodes/" + clientUser + ".json"
+	s.d.when = append(s.d.when, message{from: Client, to: Bridge, label: "POST " + p, detail: detail})
+	s.whens = append(s.whens, func(c *runCtx) {
+		body, _ := json.Marshal(payload)
+		if len(body) > size {
+			s.fatal("アクションの JSON（%d バイト）が %d バイトを超えています（テストの書き方の誤り）", len(body), size)
+			return
+		}
+		body = append(body, bytes.Repeat([]byte(" "), size-len(body))...)
+		s.sendBody(c, http.MethodPost, p, "", nil, body, chunked)
+	})
+	return s
+}
+
+// sizeLabel は、バイト数を図に描く形（「10 MiB」「10 MiB + 1 バイト」）にする。
+func sizeLabel(n int) string {
+	const mib = 1 << 20
+	switch {
+	case n < mib:
+		return fmt.Sprintf("%d バイト", n)
+	case n%mib == 0:
+		return fmt.Sprintf("%d MiB", n/mib)
+	default:
+		return fmt.Sprintf("%d MiB + %d バイト", n/mib, n%mib)
+	}
+}
+
+// ClientStallsHeader は、リクエストヘッダーを途中まで送って止まり、ブリッジが接続を切るのを（最大 30 秒）待つ。
+// 結果は ExpectConnectionClosedAfter で確かめる。
+func (s *S) ClientStallsHeader() *S {
+	p := "/api/2/subscriptions/" + clientUser + ".json"
+	s.d.when = append(s.d.when, message{from: Client, to: Bridge, label: "GET " + p, detail: []string{"ヘッダーの途中で送るのをやめる"}})
+	s.whens = append(s.whens, func(c *runCtx) {
+		if c.bridge == nil {
+			s.fatal("ブリッジが起動していません（テストの書き方の誤り）")
+			return
+		}
+		conn, err := net.Dial("tcp", strings.TrimPrefix(c.bridge.URL, "http://"))
+		if err != nil {
+			s.fatal("ブリッジに接続できません: %v", err)
+			return
+		}
+		defer conn.Close()
+		r := clientResult{method: http.MethodGet, path: p, start: time.Now()}
+		fmt.Fprintf(conn, "GET %s HTTP/1.1\r\nHost: bridge\r\nAuthorization: %s\r\n", p, clientAuth)
+		conn.SetReadDeadline(time.Now().Add(30 * time.Second))
+		_, err = io.Copy(io.Discard, conn)
+		r.end = time.Now()
+		var ne net.Error
+		r.closed = !(errors.As(err, &ne) && ne.Timeout()) // 読み取りの期限切れでなければ、ブリッジが切った
+		c.reqs = append(c.reqs, r)
+	})
 	return s
 }
 
@@ -89,6 +168,11 @@ func (s *S) ClientRequest(method, p, query string, header map[string]string, bod
 // send はブリッジへリクエストを送り、結果を記録する。
 // どのリクエストにも、クライアントの Authorization と Cookie を付ける。
 func (s *S) send(c *runCtx, method, p, query string, header map[string]string, body []byte) {
+	s.sendBody(c, method, p, query, header, body, false)
+}
+
+// sendBody は send と同じだが、chunked が true なら本文を Content-Length なしで送る。
+func (s *S) sendBody(c *runCtx, method, p, query string, header map[string]string, body []byte, chunked bool) {
 	if c.bridge == nil {
 		s.fatal("ブリッジが起動していません（テストの書き方の誤り）")
 		return
@@ -97,10 +181,14 @@ func (s *S) send(c *runCtx, method, p, query string, header map[string]string, b
 	if query != "" {
 		u += "?" + query
 	}
-	req, _ := http.NewRequest(method, u, bytes.NewReader(body))
-	if body == nil {
-		req, _ = http.NewRequest(method, u, nil)
+	var reqBody io.Reader
+	switch {
+	case chunked:
+		reqBody = struct{ io.Reader }{bytes.NewReader(body)} // 長さが分からない Reader にすると chunked で送られる
+	case body != nil:
+		reqBody = bytes.NewReader(body)
 	}
+	req, _ := http.NewRequest(method, u, reqBody)
 	req.Header.Set("Authorization", clientAuth)
 	req.Header.Set("Cookie", clientCookie)
 	if body != nil {

@@ -113,3 +113,12 @@ func TestProxy_Returns502WhenGoPodderTimesOut(t *testing.T) {
 		ExpectResponseWithin(5 * time.Second).
 		Run()
 }
+
+// 図: diagrams/PRX-08.svg
+func TestProxy_ClosesConnectionWhenHeaderIsNotFinished(t *testing.T) {
+	New(t, "PRX-08", "リクエストヘッダーを 10 秒以内に送り終えなければ、中継せずに接続を切る").
+		ClientStallsHeader().
+		ExpectConnectionClosedAfter(10 * time.Second).
+		ExpectGoPodderNotReceived("/api/2/subscriptions/alice.json").
+		Run()
+}

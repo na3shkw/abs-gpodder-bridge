@@ -3,6 +3,7 @@ package bridge
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -138,6 +139,11 @@ func (s *Server) badGateway(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusBadGateway)
 }
 
+func (s *Server) bodyTooLarge(w http.ResponseWriter) {
+	s.log.Warn("request body exceeds the limit; not forwarding to goPodder", "limitBytes", maxEpisodesBody)
+	w.WriteHeader(http.StatusRequestEntityTooLarge)
+}
+
 func writeResponseHeader(w http.ResponseWriter, resp *http.Response) {
 	removeHopHeaders(resp.Header)
 	for k, vs := range resp.Header {
@@ -146,11 +152,23 @@ func writeResponseHeader(w http.ResponseWriter, resp *http.Response) {
 	w.WriteHeader(resp.StatusCode)
 }
 
+// maxEpisodesBody は 5.1 節の本文の上限（10 MiB）。
+const maxEpisodesBody = 10 << 20
+
 // handlePostEpisodes は 5.1 節の処理を行う。
 func (s *Server) handlePostEpisodes(w http.ResponseWriter, r *http.Request) {
 	received := time.Now()
-	reqBody, err := io.ReadAll(r.Body)
+	if r.ContentLength > maxEpisodesBody {
+		s.bodyTooLarge(w)
+		return
+	}
+	reqBody, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxEpisodesBody))
 	if err != nil {
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) {
+			s.bodyTooLarge(w)
+			return
+		}
 		s.log.Warn("reading request body failed", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return

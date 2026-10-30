@@ -106,6 +106,22 @@ func (s *S) ExpectResponseWithin(d time.Duration) *S {
 	return s
 }
 
+// ExpectConnectionClosedAfter は、ClientStallsHeader の接続を、ブリッジが d（前後に余裕を持たせる）で切ることを確かめる。
+func (s *S) ExpectConnectionClosedAfter(d time.Duration) *S {
+	s.d.then = append(s.d.then, message{from: Bridge, to: Client, label: fmt.Sprintf("%s で接続を切る", d), expect: true})
+	s.thens = append(s.thens, func(c *runCtx) {
+		r := c.last()
+		el := r.end.Sub(r.start).Round(100 * time.Millisecond)
+		switch {
+		case !r.closed:
+			s.fail("%s たっても接続が切られません（%s で切られるはず）", el, d)
+		case el < d-500*time.Millisecond || el > d+5*time.Second:
+			s.fail("接続が切られるまでに %s かかりました（%s で切られるはず）", el, d)
+		}
+	})
+	return s
+}
+
 // ---------- Assert：goPodder が受け取ったリクエスト ----------
 
 var hopByHop = []string{"Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "Te", "Trailer", "Transfer-Encoding", "Upgrade"}
