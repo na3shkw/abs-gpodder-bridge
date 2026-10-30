@@ -3,6 +3,7 @@ package bridge
 import (
 	"log/slog"
 	"maps"
+	"math"
 	"testing"
 	"time"
 )
@@ -139,6 +140,25 @@ func TestLoadConfig_範囲の端の値を受け付ける(t *testing.T) {
 	}
 }
 
+func TestLoadConfig_極端な秒数でもタイムアウトは正の長さになる(t *testing.T) {
+	tests := []struct {
+		name, value string
+		want        time.Duration
+	}{
+		{"1 ナノ秒より短い", "1e-12", time.Nanosecond},
+		{"time.Duration で表せないほど長い", "1e12", time.Duration(math.MaxInt64)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := mustLoadConfig(t, map[string]string{"ABS_TIMEOUT_SECONDS": tt.value, "GOPODDER_TIMEOUT_SECONDS": tt.value})
+
+			if cfg.ABSTimeout != tt.want || cfg.GopodderTimeout != tt.want {
+				t.Errorf("ABSTimeout = %v, GopodderTimeout = %v, want %v", cfg.ABSTimeout, cfg.GopodderTimeout, tt.want)
+			}
+		})
+	}
+}
+
 func TestLoadConfig_空の値は未設定として扱う(t *testing.T) {
 	cfg := mustLoadConfig(t, map[string]string{
 		"LISTEN_PORT":              "",
@@ -179,6 +199,13 @@ func TestLoadConfig_不正な値ならエラーになる(t *testing.T) {
 		{"cron のフィールドが 4 つ", "ABS_INDEX_SCHEDULE", "* * * *"},
 		{"cron の曜日 7", "ABS_INDEX_SCHEDULE", "0 0 * * 7"},
 		{"@every の間隔が解釈できない", "ABS_INDEX_SCHEDULE", "@every soon"},
+		{"@every の間隔が負", "ABS_INDEX_SCHEDULE", "@every -5m"},
+		{"@every の間隔が 0", "ABS_INDEX_SCHEDULE", "@every 0s"},
+		{"cron 式に TZ= が付いている", "ABS_INDEX_SCHEDULE", "TZ=Asia/Tokyo 0 3 * * *"},
+		{"cron 式に CRON_TZ= が付いている", "ABS_INDEX_SCHEDULE", "CRON_TZ=Asia/Tokyo 0 3 * * *"},
+		{"URL にクエリ文字列がある", "GOPODDER_URL", "http://gopodder:8080?x=1"},
+		{"URL が ? で終わる", "GOPODDER_URL", "http://gopodder:8080?"},
+		{"URL にフラグメントがある", "ABS_URL", "http://abs#top"},
 		{"LOG_LEVEL が未知", "LOG_LEVEL", "verbose"},
 		{"LOG_LEVEL が大文字", "LOG_LEVEL", "INFO"},
 		{"TZ が存在しない", "TZ", "Asia/Tokio"},

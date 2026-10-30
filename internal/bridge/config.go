@@ -55,7 +55,7 @@ func LoadConfig(getenv func(string) string) (*Config, error) {
 	if sched == "" {
 		sched = "@every 15m"
 	}
-	if c.IndexSchedule, err = cron.ParseStandard(sched); err != nil {
+	if c.IndexSchedule, err = parseSchedule(sched); err != nil {
 		return nil, fmt.Errorf("ABS_INDEX_SCHEDULE: %w", err)
 	}
 	switch lv := getenv("LOG_LEVEL"); lv {
@@ -107,7 +107,31 @@ func parseSeconds(s string, def float64) (time.Duration, error) {
 			return 0, fmt.Errorf("invalid number of seconds %q", s)
 		}
 	}
-	return time.Duration(v * float64(time.Second)), nil
+	// http.Client は 0 以下をタイムアウトなしとみなすので、1 ナノ秒から time.Duration の最大値に収める。
+	ns := v * float64(time.Second)
+	if ns >= math.MaxInt64 {
+		return math.MaxInt64, nil
+	}
+	return max(time.Duration(ns), time.Nanosecond), nil
+}
+
+// parseSchedule は 2.1 節の書き方の cron 式を読み取る。
+// robfig/cron が受け付ける書き方のうち、仕様にないもの（タイムゾーンの接頭辞、0 以下の @every）は不正とする。
+func parseSchedule(s string) (cron.Schedule, error) {
+	if strings.HasPrefix(s, "TZ=") || strings.HasPrefix(s, "CRON_TZ=") {
+		return nil, fmt.Errorf("time zone prefix is not allowed; use TZ instead: %q", s)
+	}
+	sched, err := cron.ParseStandard(s)
+	if err != nil {
+		return nil, err
+	}
+	// robfig/cron は 1 秒未満の @every を 1 秒に切り上げるので、0 以下はここで弾く。
+	if d, ok := strings.CutPrefix(s, "@every "); ok {
+		if v, err := time.ParseDuration(d); err != nil || v <= 0 {
+			return nil, fmt.Errorf("invalid interval %q", s)
+		}
+	}
+	return sched, nil
 }
 
 func parseBaseURL(s string) (string, error) {
@@ -115,7 +139,8 @@ func parseBaseURL(s string) (string, error) {
 		return "", fmt.Errorf("not set")
 	}
 	u, err := url.Parse(s)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+	// 転送先はパスとクエリ文字列を連結して作るので、クエリ文字列やフラグメントを持つ URL は使えない。
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || strings.ContainsAny(s, "?#") {
 		return "", fmt.Errorf("invalid URL %q", s)
 	}
 	return strings.TrimSuffix(s, "/"), nil
