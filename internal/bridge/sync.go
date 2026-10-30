@@ -218,8 +218,7 @@ func gopodderAction(st *action, p *absProgress, indexDuration float64) outAction
 }
 
 func (s *Server) gopodderRequest(r *http.Request, method, query string, body io.Reader) (*http.Response, error) {
-	target := s.cfg.GopodderURL + r.URL.EscapedPath() + query
-	req, err := http.NewRequestWithContext(r.Context(), method, target, body)
+	req, err := http.NewRequestWithContext(r.Context(), method, s.gopodderURL(r, query), body)
 	if err != nil {
 		return nil, err
 	}

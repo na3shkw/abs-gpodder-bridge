@@ -92,16 +92,22 @@ func removeHopHeaders(h http.Header) {
 	}
 }
 
+// gopodderURL は GOPODDER_URL にクライアントのリクエストのパスと query を連結した URL を返す（4 章）。
+// query は "?" から始まるクエリ文字列で、なければ空にする。
+func (s *Server) gopodderURL(r *http.Request, query string) string {
+	return s.cfg.GopodderURL + r.URL.EscapedPath() + query
+}
+
 // forward はクライアントのリクエストを goPodder へ中継し、応答を返す（4 章）。
 func (s *Server) forward(r *http.Request, body io.Reader, contentLength int64) (*http.Response, error) {
-	target := s.cfg.GopodderURL + r.URL.EscapedPath()
+	query := ""
 	if r.URL.RawQuery != "" || r.URL.ForceQuery {
-		target += "?" + r.URL.RawQuery
+		query = "?" + r.URL.RawQuery
 	}
 	if contentLength == 0 {
 		body = nil
 	}
-	out, err := http.NewRequestWithContext(r.Context(), r.Method, target, body)
+	out, err := http.NewRequestWithContext(r.Context(), r.Method, s.gopodderURL(r, query), body)
 	if err != nil {
 		return nil, err
 	}
