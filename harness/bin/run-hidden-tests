@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# 隠蔽テストを実行し、実装者に渡してよい形に整えた結果を出力する（ホストで実行）。
+#
+# 使い方: run-hidden-tests [-run PATTERN] [-id ID] [-out DIR]
+#   -out を省略すると結果の Markdown を標準出力に出す。
+#   生ログは $PRIVATE_DIR/runs/<id>/ に残る（実装者には見せない）。
+#
+# 実行の流れ:
+#   1. ビルド: 実装リポジトリを読み取り専用でマウントしたコンテナで go build する
+#   2. テスト: --network none のコンテナで e2e を実行する。ブリッジは nobody で起動し、
+#              テストのソースは /root（700）配下に置くので、ブリッジからは読めない
+#   3. 整形: go test -json の出力から、テスト名・合否・REPORT 行だけを取り出す
+set -euo pipefail
+source "$(dirname "$0")/../config.sh"
+
+run=""
+id="$(date -u +%Y%m%dT%H%M%SZ)-manual"
+out=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -run) run="${2:-}"; shift 2 ;;
+    -id) id="${2:-}"; shift 2 ;;
+    -out) out="${2:-}"; shift 2 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
+ensure_state_dirs
+logdir="$PRIVATE_DIR/runs/$id"
+mkdir -p "$logdir/bin"
+
+echo "[$id] build: $IMPL_DIR ($BRIDGE_PKG)" >&2
+build_status=0
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e CGO_ENABLED=0 -e GOTOOLCHAIN=local \
+  -e GOCACHE=/cache/build -e GOMODCACHE=/cache/mod \
+  -v "$IMPL_DIR:/src:ro" \
+  -v "$BUILD_CACHE_DIR:/cache" \
+  -v "$logdir/bin:/out" \
+  -w /src \
+  "$GO_IMAGE" go build -o /out/bridge "$BRIDGE_PKG" \
+  > "$logdir/build.log" 2>&1 || build_status=$?
+
+: > "$logdir/test.jsonl"
+if [[ $build_status -eq 0 ]]; then
+  echo "[$id] test: run=${run:-<all>}" >&2
+  docker run --rm \
+    --network none \
+    -e GOTOOLCHAIN=local -e GOFLAGS=-mod=mod \
+    -e BRIDGE_BIN=/opt/bridge/bridge -e BRIDGE_UID=65534 -e BRIDGE_GID=65534 \
+    -e E2E_RUN="$run" -e E2E_TIMEOUT="$E2E_TIMEOUT" \
+    -v "$TESTS_REPO/e2e:/root/e2e:ro" \
+    -v "$logdir/bin/bridge:/opt/bridge/bridge:ro" \
+    -v "$E2E_GOCACHE_VOLUME:/root/.cache" \
+    -w /root/e2e \
+    "$GO_IMAGE" sh -c 'exec go test -json -count=1 -timeout "$E2E_TIMEOUT" ${E2E_RUN:+-run "$E2E_RUN"} ./...' \
+    > "$logdir/test.jsonl" 2> "$logdir/test.stderr" || true
+fi
+
+report_args=(-id "$id" -build-status "$build_status" -build-log "$logdir/build.log" -test-json "$logdir/test.jsonl" -run "$run")
+if [[ -n "$out" ]]; then
+  mkdir -p "$out"
+  (cd "$HARNESS_DIR/report" && GOTOOLCHAIN=local go run . "${report_args[@]}" \
+    -out-json "$out/.$id.json.tmp" -out-md "$out/.$id.md.tmp")
+  # 実装者側は .json の出現を完了の合図にするので、.md を先に置く
+  mv "$out/.$id.md.tmp" "$out/$id.md"
+  mv "$out/.$id.json.tmp" "$out/$id.json"
+  cat "$out/$id.md"
+else
+  (cd "$HARNESS_DIR/report" && GOTOOLCHAIN=local go run . "${report_args[@]}" \
+    -out-json "$logdir/result.json" -out-md "$logdir/result.md")
+  cat "$logdir/result.md"
+fi

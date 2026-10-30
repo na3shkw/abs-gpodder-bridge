@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 382" font-family="'Hiragino Sans','Noto Sans JP','Yu Gothic UI',system-ui,sans-serif">
+<style>
+svg { --bg:#ffffff; --fg:#22252a; --muted:#5f6670; --line:#d9d6cf; --accent:#2f6fbd; --ok:#3f8a52; --ng:#c0606e;
+  --client:#eef3fb; --client-s:#6b8fc7; --bridge:#eef7ef; --bridge-s:#5d9b68; --gp:#fbf1e6; --gp-s:#c58a45; --abs:#f3eefa; --abs-s:#8a6cc0; }
+@media (prefers-color-scheme: dark) {
+  svg { --bg:#1f2226; --fg:#e6e4df; --muted:#a2a7ae; --line:#3a3e44; --accent:#7fb0ee; --ok:#78b884; --ng:#e08a96;
+    --client:#1d2633; --client-s:#7fa3dc; --bridge:#1c2a20; --bridge-s:#78b884; --gp:#2e2519; --gp-s:#d9a262; --abs:#261f33; --abs-s:#a98ddc; }
+}
+rect.bg { fill: var(--bg); }
+text { fill: var(--fg); font-size: 13px; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+.detail { fill: var(--muted); }
+.band { font-size: 11px; font-weight: 700; fill: var(--muted); }
+.headtext { font-weight: 700; }
+.sep { stroke: var(--line); stroke-width: 1; }
+.life { stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.head { stroke-width: 1.5; }
+.client { fill: var(--client); stroke: var(--client-s); } .bridge { fill: var(--bridge); stroke: var(--bridge-s); }
+.gp { fill: var(--gp); stroke: var(--gp-s); } .abs { fill: var(--abs); stroke: var(--abs-s); }
+.note { stroke-width: 1; }
+.arrow { stroke: var(--muted); stroke-width: 1.5; }
+.arrow.expect { stroke: var(--ok); stroke-width: 2; }
+.arrow.negated { stroke: var(--ng); stroke-width: 2; stroke-dasharray: 6 4; }
+.check { fill: var(--bg); stroke: var(--ok); stroke-width: 1.5; }
+.step { fill: var(--bg); stroke: var(--muted); stroke-width: 1; }
+.check.negated { stroke: var(--ng); stroke-dasharray: 5 3; }
+.checktext { font-size: 12px; }
+</style>
+<defs>
+<marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+<marker id="me" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ok)"/></marker>
+<marker id="mn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ng)"/></marker>
+</defs>
+<rect class="bg" width="100%" height="100%"/>
+<line class="life" x1="100" y1="60" x2="100" y2="376"/>
+<rect class="head client" x="25" y="20" width="150" height="40" rx="8"/>
+<text class="headtext" x="100" y="45" text-anchor="middle">クライアント</text>
+<line class="life" x1="330" y1="60" x2="330" y2="376"/>
+<rect class="head bridge" x="255" y="20" width="150" height="40" rx="8"/>
+<text class="headtext" x="330" y="45" text-anchor="middle">ブリッジ</text>
+<line class="life" x1="560" y1="60" x2="560" y2="376"/>
+<rect class="head gp" x="485" y="20" width="150" height="40" rx="8"/>
+<text class="headtext" x="560" y="45" text-anchor="middle">goPodder</text>
+<line class="life" x1="790" y1="60" x2="790" y2="376"/>
+<rect class="head abs" x="715" y="20" width="150" height="40" rx="8"/>
+<text class="headtext" x="790" y="45" text-anchor="middle">ABS</text>
+<line class="sep" x1="8" y1="76" x2="892" y2="76"/>
+<text class="band" x="10" y="90">Arrange</text>
+<rect class="note gp" x="455" y="100" width="210" height="31" rx="6"/>
+<text class="mono" x="465" y="120">記録なし</text>
+<line class="sep" x1="8" y1="147" x2="892" y2="147"/>
+<text class="band" x="10" y="161">Act</text>
+<text class="label" x="215" y="183" text-anchor="middle">GET /api/2/subscriptions/alice.json</text>
+<line class="arrow" x1="100" y1="189" x2="330" y2="189" marker-end="url(#m)"/>
+<text class="mono detail" x="215" y="205" text-anchor="middle">Connection: X-Hop</text>
+<text class="mono detail" x="215" y="222" text-anchor="middle">Keep-Alive: timeout=5</text>
+<text class="mono detail" x="215" y="239" text-anchor="middle">X-Hop: secret</text>
+<line class="sep" x1="8" y1="276" x2="892" y2="276"/>
+<text class="band" x="10" y="290">Assert</text>
+<text class="label" x="445" y="312" text-anchor="middle">✓ hop-by-hop は届かない</text>
+<line class="arrow expect" x1="330" y1="318" x2="560" y2="318" marker-end="url(#me)"/>
+<text class="mono detail" x="445" y="334" text-anchor="middle">Connection に挙げたもの・Keep-Alive</text>
+<text class="mono detail" x="445" y="351" text-anchor="middle">Host は転送先</text>
+</svg>
