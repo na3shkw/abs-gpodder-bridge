@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# テストの記述から図を生成する（ホストで実行。ブリッジは起動しない）。
+# e2e テストの記述から図を生成する（ブリッジは起動しない）。
 #
 # 使い方: diagrams [write|check]
 #   write（既定）  e2e/diagrams/ に図（<ID>.svg）と index.html を書き出す
 #   check         e2e/diagrams/ が最新かを確かめる（違えば終了コード 1）
 set -euo pipefail
-source "$(dirname "$0")/../config.sh"
+root="$(cd "$(dirname "$0")/.." && pwd)"
 
 mode="${1:-write}"
-cd "$TESTS_REPO/e2e"
+cd "$root/e2e"
 status=0
 out="$(E2E_DIAGRAMS="$mode" GOTOOLCHAIN=local go test -count=1 ./... 2>&1)" || status=$?
 grep -v '^ok \|^? \|no test files' <<< "$out" || true
 if [[ $status -eq 0 ]]; then
-  n=$(ls "$TESTS_REPO/e2e/diagrams"/*.svg 2>/dev/null | wc -l)
+  n=$(ls "$root/e2e/diagrams"/*.svg 2>/dev/null | wc -l)
   if [[ "$mode" == "write" ]]; then echo "図 ${n} 件と index.html を書き出しました: e2e/diagrams/" >&2
   else echo "図 ${n} 件は最新です" >&2; fi
 fi

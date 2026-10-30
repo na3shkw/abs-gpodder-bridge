@@ -264,12 +264,12 @@ func (c *runCtx) last() *clientResult {
 
 func (s *S) fail(format string, args ...any) {
 	s.t.Helper()
-	s.t.Errorf("REPORT: [%s] %s", s.id, fmt.Sprintf(format, args...))
+	s.t.Errorf("[%s] %s", s.id, fmt.Sprintf(format, args...))
 }
 
 func (s *S) fatal(format string, args ...any) {
 	s.t.Helper()
-	s.t.Fatalf("REPORT: [%s] %s", s.id, fmt.Sprintf(format, args...))
+	s.t.Fatalf("[%s] %s", s.id, fmt.Sprintf(format, args...))
 }
 
 // ---------- 故障を注入する対象 ----------

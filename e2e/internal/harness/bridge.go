@@ -1,3 +1,4 @@
+// Package harness は、e2e テストからブリッジを起動するための補助を提供する。
 package harness
 
 import (
@@ -17,8 +18,6 @@ import (
 
 // 環境変数:
 //   BRIDGE_BIN  テスト対象のブリッジのバイナリ（必須）
-//   BRIDGE_UID  ブリッジを起動するユーザー ID（任意）。隠蔽テストの実行時は nobody を指定する
-//   BRIDGE_GID  同じくグループ ID
 
 // Bridge は起動中のブリッジのプロセスを表す。
 type Bridge struct {
@@ -41,9 +40,9 @@ func Start(t testing.TB, env Env) *Bridge {
 	b, code, ok := TryStart(t, env, true)
 	if !ok {
 		if code >= 0 {
-			Fatalf(t, "2.1", "ブリッジが起動直後に終了しました（終了コード %d）", code)
+			t.Fatalf("ブリッジが起動直後に終了しました（終了コード %d）", code)
 		}
-		Fatalf(t, "2.3", "10 秒以内に GET /healthz が応答しませんでした")
+		t.Fatal("10 秒以内に GET /healthz が応答しませんでした")
 	}
 	return b
 }
@@ -122,11 +121,6 @@ func spawn(t testing.TB, env Env) *Bridge {
 	cmd.Stdout = out
 	cmd.Stderr = out
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	if uid := os.Getenv("BRIDGE_UID"); uid != "" {
-		u, _ := strconv.Atoi(uid)
-		g, _ := strconv.Atoi(os.Getenv("BRIDGE_GID"))
-		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(u), Gid: uint32(g)}
-	}
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("ブリッジを起動できません: %v", err)
 	}
@@ -148,7 +142,7 @@ func spawn(t testing.TB, env Env) *Bridge {
 			}
 		}
 		if t.Failed() {
-			// 生ログにだけ残る（実装者には返さない）
+			// 失敗したときだけ、ブリッジの出力をテストのログに残す
 			t.Logf("bridge output:\n%s", out.String())
 		}
 	})
