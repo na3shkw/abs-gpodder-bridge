@@ -1,4 +1,4 @@
-// Package scenario は、e2e テストを Arrange・Act・Assert で書くための DSL。
+// Package scenario は、受け入れテストを Arrange・Act・Assert で書くための DSL。
 //
 // 同じ記述から、テストの実行（Run モード）と、テスト 1 件につき 1 枚の図の生成
 // （write / check モード）の両方を行う。図とテストがずれないよう、Assert はすべて
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/na3shkw/abs-gpodder-bridge/e2e/internal/fake"
-	"github.com/na3shkw/abs-gpodder-bridge/e2e/internal/harness"
+	"github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/fake"
+	"github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/harness"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/na3shkw/abs-gpodder-bridge/e2e/internal/fake"
+	"github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/fake"
 )
 
 // ---------- Arrange：ブリッジの設定 ----------

@@ -1,12 +1,12 @@
-# 014. e2e テストを DSL で書き、同じ記述から図を作る
+# 014. 受け入れテストを DSL で書き、同じ記述から図を作る
 
 - 状態：採用
 - 日付：2026-10-20
-- 関連：`e2e/internal/scenario/`、`e2e/diagrams/`
+- 関連：`acceptance/internal/scenario/`、`acceptance/diagrams/`
 
 ## 状況
 
-e2e テストのコードを読まずに、人がテストの中身を確かめられるようにしたい。手で描いた図は、テストを直したときに直し忘れて、内容がずれていく。
+受け入れテストのコードを読まずに、人がテストの中身を確かめられるようにしたい。手で描いた図は、テストを直したときに直し忘れて、内容がずれていく。
 
 「人が読める説明でテストを確かめる」手法には、次のようなものがある。
 
@@ -18,12 +18,12 @@ e2e テストのコードを読まずに、人がテストの中身を確かめ�
 
 ## 決定
 
-上の考え方を、Go の標準ライブラリだけで取り入れる（[013](013-e2e-go-stdlib.md)）。
+上の考え方を、Go の標準ライブラリだけで取り入れる（[013](013-acceptance-go-stdlib.md)）。
 
-- テストは小さな DSL（`e2e/internal/scenario`）で、前提（Arrange）・操作（Act）・期待（Assert）の順に書く。
+- テストは小さな DSL（`acceptance/internal/scenario`）で、前提（Arrange）・操作（Act）・期待（Assert）の順に書く。
 - 同じ記述から、テストの実行と図の生成の両方を行う。図を作るときはブリッジを起動しない。
-- 図はテスト 1 件につき 1 枚の SVG（`e2e/diagrams/<ID>.svg`）。帯は Arrange・Act・Assert の 3 段。
-- 一覧ページ（`e2e/diagrams/index.html`、題名「e2e テストシナリオ図解」）から、各テストのソース（`../xxx_test.go#L<行>`）へリンクする。
+- 図はテスト 1 件につき 1 枚の SVG（`acceptance/diagrams/<ID>.svg`）。帯は Arrange・Act・Assert の 3 段。
+- 一覧ページ（`acceptance/diagrams/index.html`、題名「受け入れテストシナリオ図解」）から、各テストのソース（`../xxx_test.go#L<行>`）へリンクする。
 - 各テストの直前に `// 図: diagrams/<ID>.svg` を置き、正しいかを機械的に確かめる。
 - テスト名は振る舞いが分かる英語名（`TestPOST_KeepsNewestActionPerEpisode` など）。ID（`PST-09` など）は DSL の中と失敗理由に持つ。
 - 図にはテスト名を描かない。仕様書の節との対応も持たない（利用者の判断）。

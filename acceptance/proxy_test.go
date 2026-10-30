@@ -1,10 +1,10 @@
-package e2e
+package acceptance
 
 import (
 	"testing"
 	"time"
 
-	. "github.com/na3shkw/abs-gpodder-bridge/e2e/internal/scenario"
+	. "github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/scenario"
 )
 
 // 図: diagrams/HLT-01.svg

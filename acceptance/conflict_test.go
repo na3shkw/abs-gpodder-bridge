@@ -1,10 +1,10 @@
-package e2e
+package acceptance
 
 import (
 	"testing"
 	"time"
 
-	. "github.com/na3shkw/abs-gpodder-bridge/e2e/internal/scenario"
+	. "github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/scenario"
 )
 
 // 比べ方（判定表）の各行を、POST（記録の受信）と GET（同期の突き合わせ）の両方で確かめる。

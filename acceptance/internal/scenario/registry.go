@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-// モードは環境変数 E2E_DIAGRAMS で決める。
+// モードは環境変数 DIAGRAMS_MODE で決める。
 //
 //	（なし） テストを実行する
 //	write   ブリッジを起動せず、図と一覧ページを diagrams/ に書き出す
@@ -28,7 +28,7 @@ const (
 // DiagramDir は、パッケージのディレクトリから見た図の置き場所。
 const DiagramDir = "diagrams"
 
-func mode() string { return os.Getenv("E2E_DIAGRAMS") }
+func mode() string { return os.Getenv("DIAGRAMS_MODE") }
 
 // DiagramMode は、図の生成モード（テストを実行しない）なら true を返す。
 func DiagramMode() bool { return mode() != modeRun }
@@ -71,7 +71,7 @@ func Main(m *testing.M) {
 
 func finish(md string) error {
 	if md != modeWrite && md != modeCheck {
-		return fmt.Errorf("E2E_DIAGRAMS は write か check です（%q）", md)
+		return fmt.Errorf("DIAGRAMS_MODE は write か check です（%q）", md)
 	}
 	funcs, err := scanTests(".")
 	if err != nil {

@@ -1,4 +1,4 @@
-// Package harness は、e2e テストからブリッジを起動するための補助を提供する。
+// Package harness は、受け入れテストからブリッジを起動するための補助を提供する。
 package harness
 
 import (
@@ -103,12 +103,12 @@ func (b *Bridge) Output() string { return b.out.String() }
 
 func spawn(t testing.TB, env Env) *Bridge {
 	t.Helper()
-	if os.Getenv("E2E_DIAGRAMS") != "" {
+	if os.Getenv("DIAGRAMS_MODE") != "" {
 		t.Skip("図の生成モードではブリッジを起動しない")
 	}
 	bin := os.Getenv("BRIDGE_BIN")
 	if bin == "" {
-		t.Fatal("BRIDGE_BIN が設定されていません。リポジトリの直下で scripts/e2e を実行してください")
+		t.Fatal("BRIDGE_BIN が設定されていません。リポジトリの直下で scripts/acceptance を実行してください")
 	}
 	cmd := exec.CommandContext(context.Background(), bin)
 	cmd.Dir = "/"

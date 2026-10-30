@@ -1,9 +1,9 @@
-package e2e
+package acceptance
 
 import (
 	"testing"
 
-	. "github.com/na3shkw/abs-gpodder-bridge/e2e/internal/scenario"
+	. "github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/scenario"
 )
 
 // 図: diagrams/MCH-01.svg

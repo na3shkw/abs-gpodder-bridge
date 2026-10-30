@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# ブリッジをビルドしてから e2e テストを流す。
+# ブリッジをビルドしてから受け入れテストを流す。
 #
-# 使い方: e2e [go test の引数...]
-#   e2e                  全件
-#   e2e -run Config      go test -run と同じパターンで絞り込み
-#   e2e -v -run Healthz  ほかの go test の引数もそのまま渡せる
+# 使い方: acceptance [go test の引数...]
+#   acceptance                  全件
+#   acceptance -run Config      go test -run と同じパターンで絞り込み
+#   acceptance -v -run Healthz  ほかの go test の引数もそのまま渡せる
 #
 # ビルドしたブリッジは、このワークツリーの .bin/ に毎回上書きする（git では管理しない）。
 # go test の結果のキャッシュは、ブリッジが変わっても効いてしまうので -count=1 で無効にする。
@@ -14,5 +14,5 @@ bin="$root/.bin/bridge"
 
 mkdir -p "$(dirname "$bin")"
 (cd "$root" && go build -o "$bin" ./cmd/bridge)
-cd "$root/e2e"
+cd "$root/acceptance"
 BRIDGE_BIN="$bin" exec go test -count=1 "$@" ./...

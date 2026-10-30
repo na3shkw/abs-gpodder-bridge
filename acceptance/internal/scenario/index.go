@@ -79,7 +79,7 @@ const indexHead = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>e2e テストシナリオ図解</title>
+<title>受け入れテストシナリオ図解</title>
 <style>
 :root { --bg:#fbfaf7; --fg:#22252a; --muted:#5f6670; --line:#d9d6cf; --card:#ffffff; --accent:#2f6fbd; --ok:#3f8a52; --ng:#c0606e; --code-bg:#f1efe9; }
 @media (prefers-color-scheme: dark) {
@@ -129,14 +129,14 @@ details.sec { scroll-margin-top: 56px; }
 </head>
 <body>
 <main>
-<h1>e2e テストシナリオ図解</h1>
+<h1>受け入れテストシナリオ図解</h1>
 <div class="bar"><span>チェック <span class="total"></span></span><button type="button" data-act="open">すべて開く</button><button type="button" data-act="close">すべて閉じる</button><button type="button" data-act="reset">チェックをすべて外す</button></div>
 `
 
 const indexTail = `</main>
 <script>
 (function () {
-  var P = 'e2e-diagrams:';
+  var P = 'acceptance-diagrams:';
   function load(k, d) { try { var v = localStorage.getItem(P + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(P + k, JSON.stringify(v)); } catch (e) {} }
   var checked = load('checked', {}), open = load('open', {});

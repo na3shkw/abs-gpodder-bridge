@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/na3shkw/abs-gpodder-bridge/e2e/internal/harness"
+	"github.com/na3shkw/abs-gpodder-bridge/acceptance/internal/harness"
 )
 
 // ---------- Act：クライアントのリクエスト ----------
