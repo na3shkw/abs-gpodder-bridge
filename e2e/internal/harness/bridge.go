@@ -108,7 +108,7 @@ func spawn(t testing.TB, env Env) *Bridge {
 	}
 	bin := os.Getenv("BRIDGE_BIN")
 	if bin == "" {
-		t.Fatal("BRIDGE_BIN が設定されていません")
+		t.Fatal("BRIDGE_BIN が設定されていません。リポジトリの直下で scripts/e2e を実行してください")
 	}
 	cmd := exec.CommandContext(context.Background(), bin)
 	cmd.Dir = "/"

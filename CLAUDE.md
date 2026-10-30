@@ -22,8 +22,8 @@ gPodder 互換の同期クライアント（主に AntennaPod）と Audiobookshe
   - **e2e テスト**：`e2e/` に置く（別の Go モジュール）。ビルドしたブリッジを起動し、偽の ABS・goPodder を相手に、仕様どおりに動くかを外から確かめる。
 
   ```sh
-  go build -o /tmp/bridge ./cmd/bridge
-  (cd e2e && BRIDGE_BIN=/tmp/bridge go test ./...)
+  scripts/e2e               # ブリッジをビルドしてから e2e テストを全件流す
+  scripts/e2e -run Config   # go test -run と同じパターンで絞り込み
   ```
 
 - e2e テストは仕様書の写しで、利用者が管理する。e2e テストが落ちたら、テストではなく実装を直す。テストの方が間違っていると思ったら、直さずに利用者に報告する。テストを通すためだけの分岐や特別扱いは書かない。

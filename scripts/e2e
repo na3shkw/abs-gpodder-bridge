@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# ブリッジをビルドしてから e2e テストを流す。
+#
+# 使い方: e2e [go test の引数...]
+#   e2e                  全件
+#   e2e -run Config      go test -run と同じパターンで絞り込み
+#   e2e -v -run Healthz  ほかの go test の引数もそのまま渡せる
+#
+# ビルドしたブリッジは、このワークツリーの .bin/ に毎回上書きする（git では管理しない）。
+# go test の結果のキャッシュは、ブリッジが変わっても効いてしまうので -count=1 で無効にする。
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+bin="$root/.bin/bridge"
+
+mkdir -p "$(dirname "$bin")"
+(cd "$root" && go build -o "$bin" ./cmd/bridge)
+cd "$root/e2e"
+BRIDGE_BIN="$bin" exec go test -count=1 "$@" ./...
