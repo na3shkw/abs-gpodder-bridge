@@ -186,3 +186,36 @@ func TestMatch_FeedURLStepComesFirst(t *testing.T) {
 		ExpectNoPATCHFor(ep2).
 		Run()
 }
+
+// 図: diagrams/MCH-13.svg
+func TestMatch_FeedURLUnderBasePath(t *testing.T) {
+	f1, f2 := NewEpisode("ep1").ViaABSFeed(ABSHost, "show"), NewEpisode("ep2").ViaABSFeed(ABSHost, "show")
+	New(t, "MCH-13", "フィード URL の /feed より前にベースパスがあっても、同じエピソードとみなす").
+		AdminToken().
+		ABSEpisode(f1, f2).
+		ABSFeed(f1, f2).
+		ClientPOST(
+			Play(f1).Pos(100).Total(600).At(T(1)).URL(ABSHost+"/audiobookshelf/feed/show/item/fe-ep1/media.mp3"),
+			Play(f2).Pos(200).Total(600).At(T(1)).URL(ABSHost+"/abs/proxy/feed/show/item/fe-ep2/media.mp3"),
+		).
+		ExpectPATCH(f1, B("currentTime", 100, "duration", 600)).
+		ExpectPATCH(f2, B("currentTime", 200, "duration", 600)).
+		Run()
+}
+
+// 図: diagrams/MCH-14.svg
+func TestMatch_FeedURLMustEndWithFileName(t *testing.T) {
+	f1, f2, f3 := NewEpisode("ep1").ViaABSFeed(ABSHost, "show"), NewEpisode("ep2").ViaABSFeed(ABSHost, "show"), NewEpisode("ep3").ViaABSFeed(ABSHost, "show")
+	New(t, "MCH-14", "フィード URL は、パスが /feed/{slug}/item/{ID}/{ファイル名} で終わるときだけ照合する（ep3 は対照）").
+		AdminToken().
+		ABSEpisode(f1, f2, f3).
+		ABSFeed(f1, f2, f3).
+		ClientPOST(
+			Play(f1).Pos(100).Total(600).At(T(1)).URL(ABSHost+"/feed/show/item/fe-ep1/x/media.mp3"),
+			Play(f2).Pos(200).Total(600).At(T(1)).URL(ABSHost+"/feed/show/item/fe-ep2/"),
+			Play(f3).Pos(300).Total(600).At(T(1)),
+		).
+		ExpectNoPATCHFor(f1, f2).
+		ExpectPATCH(f3, B("currentTime", 300, "duration", 600)).
+		Run()
+}

@@ -54,18 +54,23 @@ func (ix *episodeIndex) match(episode, guid string) (episodeRef, bool) {
 	return episodeRef{}, false
 }
 
-// feedEpisodeID は /feed/{slug}/item/{フィード用 ID}/... の形の URL からフィード用 ID を取り出す。
+// feedEpisodeID は、パスが /feed/{slug}/item/{フィード用 ID}/{ファイル名} で終わる URL から
+// フィード用 ID を取り出す。/feed より前のパス（ABS のベースパス）は問わない。
 func feedEpisodeID(episode string) (string, bool) {
 	u, err := url.Parse(episode)
 	if err != nil {
 		return "", false
 	}
 	seg := strings.Split(u.Path, "/")
-	// "", "feed", slug, "item", id, 以降 1 つ以上
-	if len(seg) < 6 || seg[0] != "" || seg[1] != "feed" || seg[2] == "" || seg[3] != "item" || seg[4] == "" {
+	if len(seg) < 6 {
 		return "", false
 	}
-	return seg[4], true
+	// 末尾の 5 つ：feed, slug, item, id, ファイル名
+	t := seg[len(seg)-5:]
+	if t[0] != "feed" || t[1] == "" || t[2] != "item" || t[3] == "" || t[4] == "" {
+		return "", false
+	}
+	return t[3], true
 }
 
 // normalizeURL は 6.2 節の正規化を行う。パスとクエリ文字列は変更しない。

@@ -139,12 +139,24 @@ func TestMatch_フィード用IDの対応表がなければフィードURLの手
 	})
 }
 
-func TestMatch_フィードURLの形でないパスはフィード用IDとして扱わない(t *testing.T) {
+func TestMatch_フィードURLはfeedより前のパスを問わない(t *testing.T) {
+	ix := indexFromJSON(t, testItems, testFeeds)
+
+	runMatchCases(t, ix, []matchCase{
+		{"ABS の既定のベースパス", "http://h/audiobookshelf/feed/s/item/f3/media.mp3", "", "li1/ep3"},
+		{"何段もあるパス", "http://h/a/b/feed/s/item/f3/media.mp3", "", "li1/ep3"},
+	})
+}
+
+func TestMatch_パスがfeedとslugとitemとIDとファイル名で終わらなければフィード用IDとして扱わない(t *testing.T) {
 	ix := indexFromJSON(t, testItems, testFeeds)
 
 	runMatchCases(t, ix, []matchCase{
 		{"item の後にファイル名がない", "http://h/feed/s/item/f3", "", ""},
-		{"先頭が /feed でない", "http://h/prefix/feed/s/item/f3/media.mp3", "", ""},
+		{"ファイル名が空", "http://h/feed/s/item/f3/", "", ""},
+		{"ID の後ろが 2 つある", "http://h/feed/s/item/f3/x/media.mp3", "", ""},
+		{"slug が空", "http://h/feed//item/f3/media.mp3", "", ""},
+		{"ID が空", "http://h/feed/s/item//media.mp3", "", ""},
 		{"item の位置が違う", "http://h/feed/item/f3/media.mp3", "", ""},
 	})
 }

@@ -55,7 +55,7 @@ details.sec { scroll-margin-top: 56px; }
 <main>
 <h1>受け入れテストシナリオ図解</h1>
 <div class="bar"><span>チェック <span class="total"></span></span><button type="button" data-act="open">すべて開く</button><button type="button" data-act="close">すべて閉じる</button><button type="button" data-act="reset">チェックをすべて外す</button></div>
-<p class="lead">テスト 1 件につき 1 枚の図。全 102 件。図はテストの記述（DSL）から生成している。</p>
+<p class="lead">テスト 1 件につき 1 枚の図。全 104 件。図はテストの記述（DSL）から生成している。</p>
 <div class="legend"><span><b class="ok">✓</b> 起きるべきこと</span><span><b class="ng">✗</b> 起きてはならないこと</span><span>時刻は 09:00 起点の例、位置・長さは秒</span></div>
 <nav class="side" aria-label="グループ"><ul>
 <li><a href="#g-CFG">起動・設定</a></li>
@@ -428,6 +428,16 @@ details.sec { scroll-margin-top: 56px; }
 <header><label><input type="checkbox" data-id="MCH-12"> <span class="id">MCH-12</span></label><span class="title">フィード URL と元の配信 URL が別のエピソードを指すなら、フィード URL の方を採る</span></header>
 <p class="src"><a href="../match_test.go#L176">match_test.go:176</a> <code>TestMatch_FeedURLStepComesFirst</code></p>
 <img src="MCH-12.svg" alt="MCH-12 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-13">
+<header><label><input type="checkbox" data-id="MCH-13"> <span class="id">MCH-13</span></label><span class="title">フィード URL の /feed より前にベースパスがあっても、同じエピソードとみなす</span></header>
+<p class="src"><a href="../match_test.go#L191">match_test.go:191</a> <code>TestMatch_FeedURLUnderBasePath</code></p>
+<img src="MCH-13.svg" alt="MCH-13 の図" loading="lazy">
+</article>
+<article class="card" id="MCH-14">
+<header><label><input type="checkbox" data-id="MCH-14"> <span class="id">MCH-14</span></label><span class="title">フィード URL は、パスが /feed/{slug}/item/{ID}/{ファイル名} で終わるときだけ照合する（ep3 は対照）</span></header>
+<p class="src"><a href="../match_test.go#L207">match_test.go:207</a> <code>TestMatch_FeedURLMustEndWithFileName</code></p>
+<img src="MCH-14.svg" alt="MCH-14 の図" loading="lazy">
 </article>
 </details>
 <details class="sec" id="g-IDX" data-key="IDX" open><summary><h2>索引</h2><span class="count"></span></summary>
