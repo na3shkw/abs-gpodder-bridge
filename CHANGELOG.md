@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.1.1](https://github.com/na3shkw/abs-gpodder-bridge/compare/v0.1.0...v0.1.1) - 2026-11-14
+
+### Other Changes
+- Bump Songmu/tagpr from 1.21.4 to 1.22.0 by @dependabot[bot] in https://github.com/na3shkw/abs-gpodder-bridge/pull/2
+- Bump docker/github-builder/.github/workflows/build.yml from 1.18.1 to 1.19.0 by @dependabot[bot] in https://github.com/na3shkw/abs-gpodder-bridge/pull/4
+- Bump golang from 1.25-trixie to 1.27-trixie by @dependabot[bot] in https://github.com/na3shkw/abs-gpodder-bridge/pull/5
+- Go のツールチェーンを Dockerfile のイメージに揃える by @na3shkw in https://github.com/na3shkw/abs-gpodder-bridge/pull/6
+
 ## [v0.1.0](https://github.com/na3shkw/abs-gpodder-bridge/commits/v0.1.0) - 2026-10-31
 
 最初のリリース。
