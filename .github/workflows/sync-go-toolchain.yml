@@ -1,0 +1,46 @@
+name: Sync Go toolchain
+
+# dependabot による Dockerfile の golang イメージバージョン更新に go.mod の toolchain バージョンを追従させる。
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+
+permissions: {}
+
+jobs:
+  sync:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Update toolchain in go.mod
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          version=go$(sed -nE 's/^FROM golang:([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/p' Dockerfile)
+          if [ "$version" = go ]; then
+            echo "::error file=Dockerfile::Dockerfile から golang イメージの版（パッチ版まで）を読み取れない"
+            exit 1
+          fi
+          go mod edit -toolchain="$version"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Commit and push
+        run: |
+          if git diff --quiet; then
+            echo "go.mod は揃っている"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "Go のツールチェーンを ${VERSION} に揃える"
+          git push
