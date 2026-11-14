@@ -7,6 +7,8 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/deploy-pages@v5.0.1'
         - 'actions/upload-pages-artifact@v5.0.0'
+    '.github/workflows/sync-go-toolchain.yml':
+        - 'actions/checkout@v7.0.1'
     '.github/workflows/tagpr.yml':
         - 'actions/checkout@v7.0.1'
         - 'songmu/tagpr@v1.22.0'
