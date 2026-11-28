@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.1.2](https://github.com/na3shkw/abs-gpodder-bridge/compare/v0.1.1...v0.1.2) - 2026-11-28
+
+### Other Changes
+- Bump actions/setup-go from 7.0.0 to 7.1.0 by @dependabot[bot] in https://github.com/na3shkw/abs-gpodder-bridge/pull/7
+- Bump docker/github-builder/.github/workflows/build.yml from 1.19.0 to 1.20.0 by @dependabot[bot] in https://github.com/na3shkw/abs-gpodder-bridge/pull/9
+
 ## [v0.1.1](https://github.com/na3shkw/abs-gpodder-bridge/compare/v0.1.0...v0.1.1) - 2026-11-14
 
 ### Other Changes
